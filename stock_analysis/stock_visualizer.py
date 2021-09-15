@@ -1,19 +1,15 @@
 """Visualize financial instruments."""
-
 import math
-
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 import numpy as np
 import pandas as pd
 import seaborn as sns
-
 from .utils import validate_df
 
 
 class Visualizer:
     """Base visualizer class not intended for direct use."""
-
     @validate_df(columns={'open', 'high', 'low', 'close'})
     def __init__(self, df):
         """Visualizer has a `pandas.DataFrame` object as an attribute."""
@@ -50,11 +46,9 @@ class Visualizer:
                         'You must provide an `x` or a `y` at a minimum.'
                     )
                 elif x and not y:
-                    # vertical line
-                    ax.axvline(x, **kwargs)
+                    ax.axvline(x, **kwargs) # Vertical line
                 elif not x and y:
-                    # horizontal line
-                    ax.axhline(y, **kwargs)
+                    ax.axhline(y, **kwargs) # Horizontal line
             except:
                 raise ValueError(
                     'If providing only `x` or `y`, it must be a single value.'
@@ -86,11 +80,9 @@ class Visualizer:
         elif x and y:
             raise ValueError('You can only provide `x` or `y`.')
         elif x and not y:
-            # vertical span
-            ax.axvspan(*x, **kwargs)
+            ax.axvspan(*x, **kwargs) # Vertical span
         elif not x and y:
-            # horizontal span
-            ax.axhspan(*y, **kwargs)
+            ax.axhspan(*y, **kwargs) # Horizontal span
         return ax
 
     @staticmethod
@@ -106,7 +98,7 @@ class Visualizer:
             The input as a list or tuple.
         """
         if not isinstance(items, (list, tuple)):
-            items = [items]
+            items = list(items)
         return items
 
     def _window_calc(self, column, periods, name, func, named_arg, **kwargs):
@@ -124,14 +116,19 @@ class Visualizer:
             - column: The name of the column to plot.
             - periods: The rule or list of rules for resampling,
                        like '20D' for 20-day periods.
-            - kwargs: Additional arguments to pass down to the plotting function.
+            - kwargs: Additional arguments to pass down 
+                      to the plotting function.
 
         Returns:
             A matplotlib `Axes` object.
         """
         return self._window_calc(
-            column, periods, name='MA',
-            func=pd.DataFrame.resample, named_arg='rule', **kwargs
+            column, 
+            periods, 
+            name='MA',
+            func=pd.DataFrame.resample, 
+            named_arg='rule', 
+            **kwargs
         )
 
     def exp_smoothing(self, column, periods, **kwargs):
@@ -142,14 +139,19 @@ class Visualizer:
             - column: The name of the column to plot.
             - periods: The span or list of spans for smoothing,
                        like 20 for 20-day periods.
-            - kwargs: Additional arguments to pass down to the plotting function.
+            - kwargs: Additional arguments to pass down 
+                      to the plotting function.
 
         Returns:
             A matplotlib `Axes` object.
         """
         return self._window_calc(
-            column, periods, name='EWMA',
-            func=pd.DataFrame.ewm, named_arg='span', **kwargs
+            column, 
+            periods, 
+            name='EWMA',
+            func=pd.DataFrame.ewm, 
+            named_arg='span', 
+            **kwargs
         )
 
     # abstract methods for subclasses to define
@@ -166,7 +168,8 @@ class Visualizer:
         raise NotImplementedError('To be implemented by subclasses.')
 
     def after_hours_trades(self):
-        """To be implemented by subclasses for showing the effect of after-hours trading."""
+        """To be implemented by subclasses for showing the effect 
+        of after-hours trading."""
         raise NotImplementedError('To be implemented by subclasses.')
 
     def pairplot(self, **kwargs):
@@ -176,7 +179,6 @@ class Visualizer:
 
 class StockVisualizer(Visualizer):
     """Visualizer for a single stock."""
-
     def evolution_over_time(self, column, **kwargs):
         """
         Visualize the evolution over time of a column.
@@ -224,27 +226,47 @@ class StockVisualizer(Visualizer):
         subset of the date range, and volume.
 
         Parameters:
-            - date_range: String or `slice()` of dates to pass to `loc[]`, if `None`
+            - date_range: String or `slice()` of dates to pass to `loc[]`, 
+                          if `None`
                           the plot will be for the full range of the data.
             - resample: The offset to use for resampling the data, if desired.
-            - volume: Whether to show a bar plot for volume traded under the candlesticks
-            - kwargs: Additional keyword arguments to pass down to `mplfinance.plot()`
+            - volume: Whether to show a bar plot for volume traded 
+                      under the candlesticks
+            - kwargs: Additional keyword arguments to pass down 
+                      to `mplfinance.plot()`
 
-        Note: `mplfinance.plot()` doesn't return anything. To save your plot, pass in `savefig=file.png`.
+        Note: `mplfinance.plot()` doesn't return anything. 
+              To save your plot, pass in `savefig=file.png`.
         """
         if not date_range:
-            date_range = slice(self.data.index.min(), self.data.index.max())
+            date_range = slice(
+                self.data.index.min(), 
+                self.data.index.max()
+            )
         plot_data = self.data.loc[date_range]
-
         if resample:
             agg_dict = {
-                'open': 'first', 'close': 'last',
-                'high': 'max', 'low': 'min', 'volume': 'sum'
+                'open': 'first', 
+                'close': 'last',
+                'high': 'max', 
+                'low': 'min', 
+                'volume': 'sum'
             }
-            plot_data = plot_data.resample(resample).agg({col: agg_dict[col] for col in plot_data.columns if col in agg_dict})
-
-        mpf.plot(plot_data, type='candle', volume=volume, **kwargs)
-
+            plot_data = plot_data\
+                .resample(resample)\
+                .agg(
+                    dict(
+                        (col, agg_dict[col]) 
+                        for col in plot_data.columns 
+                        if col in agg_dict
+                    )
+                )
+        mpf.plot(
+            plot_data, 
+            type='candle', 
+            volume=volume, 
+            **kwargs
+        )
 
     def after_hours_trades(self):
         """
@@ -254,23 +276,30 @@ class StockVisualizer(Visualizer):
             A matplotlib `Axes` object.
         """
         after_hours = self.data.open - self.data.close.shift()
-
-        monthly_effect = after_hours.resample('1M').sum()
+        monthly_effect = after_hours\
+            .resample('1M')\
+            .sum()
         fig, axes = plt.subplots(1, 2, figsize=(15, 3))
-
-        after_hours.plot(
-            ax=axes[0],
-            title='After-hours trading\n(Open Price - Prior Day\'s Close)'
-        ).set_ylabel('price')
-
+        after_hours\
+            .plot(
+                ax=axes[0],
+                title='After-hours trading\n(Open Price - Prior Day\'s Close)'
+            )\
+            .set_ylabel('price')
         monthly_effect.index = monthly_effect.index.strftime('%Y-%b')
-        monthly_effect.plot(
-            ax=axes[1],
-            kind='bar',
-            title='After-hours trading monthly effect',
-            color=np.where(monthly_effect >= 0, 'g', 'r'),
-            rot=90
-        ).axhline(0, color='black', linewidth=1)
+        monthly_effect\
+            .plot(
+                ax=axes[1],
+                kind='bar',
+                title='After-hours trading monthly effect',
+                color=np.where(monthly_effect >= 0, 'g', 'r'),
+                rot=90
+            )\
+            .axhline(
+                0, 
+                color='black', 
+                linewidth=1
+            )
         axes[1].set_ylabel('price')
         return axes
 
@@ -291,24 +320,32 @@ class StockVisualizer(Visualizer):
             A matplotlib `Axes` object.
         """
         is_higher = y2 - y1 > 0
-
         fig = plt.figure(figsize=figsize)
-
         for exclude_mask, color, label in zip(
             (is_higher, np.invert(is_higher)),
             ('g', 'r'),
             (label_higher, label_lower)
         ):
             plt.fill_between(
-                y2.index, y2, y1, figure=fig,
-                where=exclude_mask, color=color, label=label
+                y2.index, 
+                y2, 
+                y1, 
+                figure=fig,
+                where=exclude_mask, 
+                color=color, 
+                label=label
             )
         plt.suptitle(title)
-        plt.legend(bbox_to_anchor=(legend_x, -0.1), framealpha=0, ncol=2)
-
+        plt.legend(
+            bbox_to_anchor=(legend_x, -0.1), 
+            framealpha=0, 
+            ncol=2
+        )
         for spine in ['top', 'right']:
-            fig.axes[0].spines[spine].set_visible(False)
-
+            fig\
+                .axes[0]\
+                .spines[spine]\
+                .set_visible(False)
         return fig.axes[0]
 
     def open_to_close(self, figsize=(10, 4)):
@@ -322,9 +359,13 @@ class StockVisualizer(Visualizer):
             A matplotlib `Axes` object.
         """
         ax = self.fill_between(
-            self.data.open, self.data.close, figsize=figsize,
-            legend_x=0.67, title='Daily price change (open to close)',
-            label_higher='price rose', label_lower='price fell'
+            self.data.open, 
+            self.data.close, 
+            figsize=figsize,
+            legend_x=0.67, 
+            title='Daily price change (open to close)',
+            label_higher='price rose', 
+            label_lower='price fell'
         )
         ax.set_ylabel('price')
         return ax
@@ -341,9 +382,13 @@ class StockVisualizer(Visualizer):
             A matplotlib `Axes` object.
         """
         ax = self.fill_between(
-            other_df.open, self.data.close, figsize=figsize, legend_x=0.7,
+            other_df.open, 
+            self.data.close, 
+            figsize=figsize, 
+            legend_x=0.7,
             title='Differential between asset closing price (this - other)',
-            label_higher='asset is higher', label_lower='asset is lower'
+            label_higher='asset is higher', 
+            label_lower='asset is lower'
         )
         ax.set_ylabel('price')
         return ax
@@ -356,7 +401,8 @@ class StockVisualizer(Visualizer):
         Parameters:
             - column: The name of the column to plot.
             - periods: The rule/span or list of them to pass to the
-                       resampling/smoothing function, like '20D' for 20-day periods
+                       resampling/smoothing function, like '20D' 
+                       for 20-day periods
                        (for resampling) or 20 for a 20-day span (smoothing)
             - name: The name of the window calculation (to show in the legend).
             - func: The window calculation function.
@@ -366,15 +412,23 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        ax = self.data.plot(y=column, **kwargs)
+        ax = self.data.plot(
+            y=column, 
+            **kwargs
+        )
         for period in self._iter_handler(periods):
-            self.data[column].pipe(
-                func, **{named_arg: period}
-            ).mean().plot(
-                ax=ax,
-                linestyle='--',
-                label=f'{period if isinstance(period, str) else str(period) + "D"} {name}'
-            )
+            validPeriod = \
+                period\
+                if isinstance(period, str) else \
+                str(period)
+            self.data[column]\
+                .pipe(func, **{named_arg: period})\
+                .mean()\
+                .plot(
+                    ax=ax,
+                    linestyle='--',
+                    label=f'{validPeriod + "D"} {name}'
+                )
         plt.legend()
         return ax
 
@@ -408,6 +462,7 @@ class StockVisualizer(Visualizer):
             y=other[column],
             **kwargs
         )
+
     def correlation_heatmap(self, other):
         """
         Plot the correlations between this asset and
@@ -419,17 +474,20 @@ class StockVisualizer(Visualizer):
         Returns:
             A seaborn heatmap
         """
-        corrs = self.data.pct_change().corrwith(other.pct_change())
+        corrs = self.data.pct_change()\
+            .corrwith(
+                other.pct_change()
+            )
         corrs = corrs[~pd.isnull(corrs)]
         size = len(corrs)
-        matrix = np.zeros((size, size), float)
+        matrix = np.zeros(
+            (size, size), 
+            float
+        )
         for i, corr in zip(range(size), corrs):
             matrix[i][i] = corr
-
-        # create mask to only show diagonal
-        mask = np.ones_like(matrix)
+        mask = np.ones_like(matrix) # Create mask to only show diagonal
         np.fill_diagonal(mask, 0)
-
         return sns.heatmap(
             matrix,
             annot=True,
@@ -444,8 +502,6 @@ class StockVisualizer(Visualizer):
 
 class AssetGroupVisualizer(Visualizer):
     """Class for visualizing groups of assets in a single dataframe."""
-
-    # override for group visuals
     def __init__(self, df, group_by='name'):
         """This object also keeps track of which column it needs to group by."""
         super().__init__(df)
@@ -464,7 +520,11 @@ class AssetGroupVisualizer(Visualizer):
             A matplotlib `Axes` object.
         """
         if 'ax' not in kwargs:
-            fig, ax = plt.subplots(1, 1, figsize=(10, 4))
+            fig, ax = plt.subplots(
+                1, 
+                1, 
+                figsize=(10, 4)
+            )
         else:
             ax = kwargs.pop('ax')
         return sns.lineplot(
@@ -504,14 +564,17 @@ class AssetGroupVisualizer(Visualizer):
         """
         subplots_needed = self.data[self.group_by].nunique()
         rows = math.ceil(subplots_needed / 2)
-        fig, axes = plt.subplots(rows, 2, figsize=(15, 5 * rows))
+        fig, axes = plt.subplots(
+            rows, 
+            2, 
+            figsize=(15, 5 * rows)
+        )
         if rows > 1:
             axes = axes.flatten()
         if subplots_needed < len(axes):
             # remove excess axes from autolayout
             for i in range(subplots_needed, len(axes)):
-                # can't use comprehension here
-                fig.delaxes(axes[i])
+                fig.delaxes(axes[i]) # Can't use list comprehension here
         return fig, axes
 
     def histogram(self, column, **kwargs):
@@ -527,8 +590,15 @@ class AssetGroupVisualizer(Visualizer):
             A matplotlib `Axes` object.
         """
         fig, axes = self._get_layout()
-        for ax, (name, data) in zip(axes, self.data.groupby(self.group_by)):
-            sns.histplot(data[column], kde=True, ax=ax)
+        for ax, (name, data) in zip(
+            axes, 
+            self.data.groupby(self.group_by)
+        ):
+            sns.histplot(
+                data[column], 
+                kde=True, 
+                ax=ax
+            )
             ax.set_title(f'{name} - {column}')
         return axes
 
@@ -540,7 +610,8 @@ class AssetGroupVisualizer(Visualizer):
         Parameters:
             - column: The name of the column to plot.
             - periods: The rule/span or list of them to pass to the
-                       resampling/smoothing function, like '20D' for 20-day periods
+                       resampling/smoothing function, like '20D' 
+                       for 20-day periods
                        (for resampling) or 20 for a 20-day span (smoothing)
             - name: The name of the window calculation (to show in the legend).
             - func: The window calculation function.
@@ -551,17 +622,31 @@ class AssetGroupVisualizer(Visualizer):
             A matplotlib `Axes` object.
         """
         fig, axes = self._get_layout()
-        for ax, asset_name in zip(axes, self.data[self.group_by].unique()):
-            subset = self.data.query(f'{self.group_by} == "{asset_name}"')
-            ax = subset.plot(y=column, ax=ax, label=asset_name, **kwargs)
+        for ax, asset_name in zip(
+            axes, 
+            self.data[self.group_by].unique()
+        ):
+            subset = self.data\
+                .query(f'{self.group_by} == "{asset_name}"')
+            ax = subset.plot(
+                y=column, 
+                ax=ax, 
+                label=asset_name, 
+                **kwargs
+            )
             for period in self._iter_handler(periods):
-                subset[column].pipe(
-                    func, **{named_arg: period}
-                ).mean().plot(
-                    ax=ax,
-                    linestyle='--',
-                    label=f'{period if isinstance(period, str) else str(period) + "D"} {name}'
-                )
+                validPeriod = \
+                    period \
+                    if isinstance(period, str) else \
+                    str(period)
+                subset[column]\
+                    .pipe(func, **{named_arg: period})\
+                    .mean()\
+                    .plot(
+                        ax=ax,
+                        linestyle='--',
+                        label=f'{validPeriod + "D"} {name}'
+                    )
             ax.legend()
         plt.tight_layout()
         return ax
@@ -579,25 +664,34 @@ class AssetGroupVisualizer(Visualizer):
             2,
             figsize=(15, 3 * num_categories)
         )
-
-        for ax, (name, data) in zip(axes, self.data.groupby(self.group_by)):
+        for ax, (name, data) in zip(
+            axes, 
+            self.data.groupby(self.group_by)
+        ):
             after_hours = data.open - data.close.shift()
-
-            monthly_effect = after_hours.resample('1M').sum()
-
-            after_hours.plot(
-                ax=ax[0],
-                title=f'{name} Open Price - Prior Day\'s Close'
-            ).set_ylabel('price')
-
+            monthly_effect = after_hours\
+                .resample('1M')\
+                .sum()
+            after_hours\
+                .plot(
+                    ax=ax[0],
+                    title=f'{name} Open Price - Prior Day\'s Close'
+                )\
+                .set_ylabel('price')
             monthly_effect.index = monthly_effect.index.strftime('%Y-%b')
-            monthly_effect.plot(
-                ax=ax[1],
-                kind='bar',
-                title=f'{name} after-hours trading monthly effect',
-                color=np.where(monthly_effect >= 0, 'g', 'r'),
-                rot=90
-            ).axhline(0, color='black', linewidth=1)
+            monthly_effect\
+                .plot(
+                    ax=ax[1],
+                    kind='bar',
+                    title=f'{name} after-hours trading monthly effect',
+                    color=np.where(monthly_effect >= 0, 'g', 'r'),
+                    rot=90
+                )\
+                .axhline(
+                    0, 
+                    color='black', 
+                    linewidth=1
+                )
             ax[1].set_ylabel('price')
         plt.tight_layout()
         return axes
@@ -614,7 +708,9 @@ class AssetGroupVisualizer(Visualizer):
         """
         return sns.pairplot(
             self.data.pivot_table(
-                values='close', index=self.data.index, columns=self.group_by
+                values='close', 
+                index=self.data.index, 
+                columns=self.group_by
             ),
             diag_kind='kde',
             **kwargs
@@ -634,8 +730,17 @@ class AssetGroupVisualizer(Visualizer):
             A seaborn heatmap
         """
         pivot = self.data.pivot_table(
-            values='close', index=self.data.index, columns=self.group_by
+            values='close', 
+            index=self.data.index, 
+            columns=self.group_by
         )
         if pct_change:
             pivot = pivot.pct_change()
-        return sns.heatmap(pivot.corr(), annot=True, center=0, vmin=-1, vmax=1, **kwargs)
+        return sns.heatmap(
+            pivot.corr(), 
+            annot=True, 
+            center=0, 
+            vmin=-1, 
+            vmax=1, 
+            **kwargs
+        )
