@@ -1,8 +1,6 @@
 """Utility functions for stock analysis."""
-
 from functools import wraps
 import re
-
 import pandas as pd
 
 
@@ -17,8 +15,10 @@ def _sanitize_label(label):
     Returns:
         The sanitized label.
     """
-    return re.sub(r'[^\w\s]', '', label).lower().replace(' ', '_')
-
+    return re\
+        .sub(r'[^\w\s]', '', label)\
+        .lower()\
+        .replace(' ', '_')
 
 def label_sanitizer(method):
     """
@@ -33,17 +33,13 @@ def label_sanitizer(method):
     Returns:
         A decorated method or function.
     """
-    # keep the docstring of the data method for help()
     @wraps(method)
     def method_wrapper(self, *args, **kwargs):
         df = method(self, *args, **kwargs)
-
-        # fix the column names
-        df.columns = [
-            _sanitize_label(col) for col in df.columns
-        ]
-
-        # fix the index name
+        df.columns = list(
+            _sanitize_label(col) 
+            for col in df.columns
+        )
         df.index.rename(
             _sanitize_label(df.index.name),
             inplace=True
@@ -71,11 +67,11 @@ def validate_df(columns, instance_method=True):
     def method_wrapper(method):
         @wraps(method)
         def validate_wrapper(self, *args, **kwargs):
-            # functions and static methods don't pass self
-            # so self is the first positional argument in that case
             df = (self, *args)[0 if not instance_method else 1]
             if not isinstance(df, pd.DataFrame):
-                raise ValueError('Must pass in a pandas `DataFrame`')
+                raise ValueError(
+                    'Must pass in a pandas `DataFrame`'
+                )
             if columns.difference(df.columns):
                 raise ValueError(
                     f'DataFrame must contain the following columns: {columns}'
@@ -97,14 +93,11 @@ def group_stocks(mapping):
         A new `pandas.DataFrame` object
     """
     group_df = pd.DataFrame()
-
     for stock, stock_data in mapping.items():
         df = stock_data.copy(deep=True)
         df['name'] = stock
         group_df = group_df.append(df, sort=True)
-
     group_df.index = pd.to_datetime(group_df.index)
-
     return group_df
 
 
@@ -119,7 +112,10 @@ def describe_group(data):
     Returns:
         The transpose of the grouped description statistics.
     """
-    return data.groupby('name').describe().T
+    return data\
+        .groupby('name')\
+        .describe()\
+        .T
 
 
 @validate_df(columns=set(), instance_method=False)
@@ -130,4 +126,6 @@ def make_portfolio(data, date_level='date'):
     Note: the caller is responsible for making sure the dates line up across
     assets and handling when they don't.
     """
-    return data.groupby(level=date_level).sum()
+    return data\
+        .groupby(level=date_level)\
+        .sum()

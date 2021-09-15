@@ -1,17 +1,13 @@
 """Gather select stock data."""
-
 import datetime as dt
 import re
-
 import pandas as pd
 import pandas_datareader.data as web
-
 from .utils import label_sanitizer
 
 
 class StockReader:
     """Class for reading financial data from websites."""
-
     _index_tickers = {
         'S&P 500': '^GSPC', 'Dow Jones': '^DJI', 'NASDAQ': '^IXIC', # US
         'S&P/TSX Composite Index': '^GSPTSE', # Canada
@@ -49,9 +45,10 @@ class StockReader:
         """
         self.start, self.end = map(
             lambda x: \
-                x.strftime('%Y%m%d') if isinstance(x, dt.date)\
-                else re.sub(r'\D', '', x),
-            [start, end or dt.date.today()]
+                x.strftime('%Y%m%d') \
+                if isinstance(x, dt.date) else \
+                re.sub(r'\D', '', x),
+            list(start, end or dt.date.today())
         )
         if self.start >= self.end:
             raise ValueError('`start` must be before `end`')
@@ -94,8 +91,11 @@ class StockReader:
         Returns:
             A `pandas.DataFrame` object with the stock data.
         """
-        return web.get_data_yahoo(ticker, self.start, self.end)
-
+        return web.get_data_yahoo(
+            ticker, 
+            self.start, 
+            self.end
+        )
 
     def get_index_data(self, index):
         """
@@ -118,8 +118,8 @@ class StockReader:
                 'Index not supported. '
                 f"Available tickers are: {', '.join(self.available_tickers)}"
             )
-        return self.get_ticker_data(self.get_index_ticker(index))
-
+        indexTicker = self.get_index_ticker(index)
+        return self.get_ticker_data(indexTicker)
 
     def get_bitcoin_data(self, currency_code):
         """
@@ -132,8 +132,9 @@ class StockReader:
         Returns:
             A `pandas.DataFrame` object with the bitcoin data.
         """
-        return self.get_ticker_data(f'BTC-{currency_code}').loc[self.start:self.end]
-
+        return self\
+            .get_ticker_data(f'BTC-{currency_code}')\
+            .loc[self.start:self.end]
 
     def get_risk_free_rate_of_return(self, last=True):
         """
@@ -141,17 +142,27 @@ class StockReader:
         Source: FRED (https://fred.stlouisfed.org/series/DGS10)
 
         Parameter:
-            - last: If `True` (default), return the rate on the last date in the date range
-                    else, return a `Series` object for the rate each day in the date range.
+            - last: If `True` (default), return the rate on the last date 
+                    in the date range
+                    else, return a `Series` object for the rate each day 
+                    in the date range.
 
         Returns:
-            A single value or a `pandas.Series` object with the risk-free rate(s) of return.
+            A single value or a `pandas.Series` object with 
+            the risk-free rate(s) of return.
         """
-        data = web.DataReader('DGS10', 'fred', start=self.start, end=self.end)
+        data = web.DataReader(
+            'DGS10', 
+            'fred', 
+            start=self.start, 
+            end=self.end
+        )
         data.index.rename('date', inplace=True)
         data = data.squeeze()
-        return data.asof(self.end) if last and isinstance(data, pd.Series) else data
-
+        return \
+            data.asof(self.end) \
+            if last and isinstance(data, pd.Series) else \
+            data
 
     @label_sanitizer
     def get_forex_rates(self, from_currency, to_currency, **kwargs):
@@ -159,8 +170,9 @@ class StockReader:
         Get daily foreign exchange rates from AlphaVantage.
 
         Note: This requires an API key, which can be obtained for free at
-        https://www.alphavantage.co/support/#api-key. To use this method, you must either
-        store it as an environment variable called `ALPHAVANTAGE_API_KEY` or pass it in to
+        https://www.alphavantage.co/support/#api-key. 
+        To use this method, you must either store it as an 
+        environment variable called `ALPHAVANTAGE_API_KEY` or pass it in to
         this method as `api_key`.
 
         Parameters:
@@ -170,9 +182,14 @@ class StockReader:
         Returns:
             A `pandas.DataFrame` with daily exchange rates.
         """
-        data = web.DataReader(
-            f'{from_currency}/{to_currency}', 'av-forex-daily',
-            start=self.start, end=self.end, **kwargs
-        ).rename(pd.to_datetime)
+        data = web\
+            .DataReader(
+                f'{from_currency}/{to_currency}', 
+                'av-forex-daily',
+                start=self.start, 
+                end=self.end, 
+                **kwargs
+            )\
+            .rename(pd.to_datetime)
         data.index.rename('date', inplace=True)
         return data
