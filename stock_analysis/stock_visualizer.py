@@ -13,7 +13,7 @@ class Visualizer:
     @validate_df(columns={'open', 'high', 'low', 'close'})
     def __init__(self, df):
         """Visualizer has a `pandas.DataFrame` object as an attribute."""
-        self.data = df
+        self.df = df
 
     @staticmethod
     def add_reference_line(ax, x=None, y=None, **kwargs):
@@ -191,7 +191,7 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.data.plot.line(y=column, **kwargs)
+        return self.df.plot.line(y=column, **kwargs)
 
     def boxplot(self, **kwargs):
         """
@@ -204,7 +204,7 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.data.plot(kind='box', **kwargs)
+        return self.df.plot(kind='box', **kwargs)
 
     def histogram(self, column, **kwargs):
         """
@@ -218,7 +218,7 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.data.plot.hist(y=column, **kwargs)
+        return self.df.plot.hist(y=column, **kwargs)
 
     def candlestick(self, date_range=None, resample=None, volume=False, **kwargs):
         """
@@ -240,10 +240,10 @@ class StockVisualizer(Visualizer):
         """
         if not date_range:
             date_range = slice(
-                self.data.index.min(), 
-                self.data.index.max()
+                self.df.index.min(), 
+                self.df.index.max()
             )
-        plot_data = self.data.loc[date_range]
+        plot_data = self.df.loc[date_range]
         if resample:
             agg_dict = {
                 'open': 'first', 
@@ -275,7 +275,7 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        after_hours = self.data.open - self.data.close.shift()
+        after_hours = self.df.open - self.df.close.shift()
         monthly_effect = after_hours\
             .resample('1M')\
             .sum()
@@ -359,8 +359,8 @@ class StockVisualizer(Visualizer):
             A matplotlib `Axes` object.
         """
         ax = self.fill_between(
-            self.data.open, 
-            self.data.close, 
+            self.df.open, 
+            self.df.close, 
             figsize=figsize,
             legend_x=0.67, 
             title='Daily price change (open to close)',
@@ -383,7 +383,7 @@ class StockVisualizer(Visualizer):
         """
         ax = self.fill_between(
             other_df.open, 
-            self.data.close, 
+            self.df.close, 
             figsize=figsize, 
             legend_x=0.7,
             title='Differential between asset closing price (this - other)',
@@ -412,7 +412,7 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        ax = self.data.plot(
+        ax = self.df.plot(
             y=column, 
             **kwargs
         )
@@ -421,7 +421,7 @@ class StockVisualizer(Visualizer):
                 period\
                 if isinstance(period, str) else \
                 str(period)
-            self.data[column]\
+            self.df[column]\
                 .pipe(func, **{named_arg: period})\
                 .mean()\
                 .plot(
@@ -442,7 +442,7 @@ class StockVisualizer(Visualizer):
         Returns:
             A seaborn pairplot
         """
-        return sns.pairplot(self.data, **kwargs)
+        return sns.pairplot(self.df, **kwargs)
 
     def jointplot(self, other, column, **kwargs):
         """
@@ -458,7 +458,7 @@ class StockVisualizer(Visualizer):
             A seaborn jointplot
         """
         return sns.jointplot(
-            x=self.data[column],
+            x=self.df[column],
             y=other[column],
             **kwargs
         )
@@ -474,7 +474,7 @@ class StockVisualizer(Visualizer):
         Returns:
             A seaborn heatmap
         """
-        corrs = self.data.pct_change()\
+        corrs = self.df.pct_change()\
             .corrwith(
                 other.pct_change()
             )
@@ -491,8 +491,8 @@ class StockVisualizer(Visualizer):
         return sns.heatmap(
             matrix,
             annot=True,
-            xticklabels=self.data.columns,
-            yticklabels=self.data.columns,
+            xticklabels=self.df.columns,
+            yticklabels=self.df.columns,
             center=0,
             mask=mask,
             vmin=-1,
@@ -528,10 +528,10 @@ class AssetGroupVisualizer(Visualizer):
         else:
             ax = kwargs.pop('ax')
         return sns.lineplot(
-            x=self.data.index,
+            x=self.df.index,
             y=column,
             hue=self.group_by,
-            data=self.data,
+            data=self.df,
             ax=ax,
             **kwargs
         )
@@ -551,7 +551,7 @@ class AssetGroupVisualizer(Visualizer):
         return sns.boxplot(
             x=self.group_by,
             y=column,
-            data=self.data,
+            data=self.df,
             **kwargs
         )
 
@@ -562,7 +562,7 @@ class AssetGroupVisualizer(Visualizer):
         Returns:
             The matplotlib `Figure` and `Axes` objects to plot with.
         """
-        subplots_needed = self.data[self.group_by].nunique()
+        subplots_needed = self.df[self.group_by].nunique()
         rows = math.ceil(subplots_needed / 2)
         fig, axes = plt.subplots(
             rows, 
@@ -592,7 +592,7 @@ class AssetGroupVisualizer(Visualizer):
         fig, axes = self._get_layout()
         for ax, (name, data) in zip(
             axes, 
-            self.data.groupby(self.group_by)
+            self.df.groupby(self.group_by)
         ):
             sns.histplot(
                 data[column], 
@@ -624,9 +624,9 @@ class AssetGroupVisualizer(Visualizer):
         fig, axes = self._get_layout()
         for ax, asset_name in zip(
             axes, 
-            self.data[self.group_by].unique()
+            self.df[self.group_by].unique()
         ):
-            subset = self.data\
+            subset = self.df\
                 .query(f'{self.group_by} == "{asset_name}"')
             ax = subset.plot(
                 y=column, 
@@ -658,7 +658,7 @@ class AssetGroupVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        num_categories = self.data[self.group_by].nunique()
+        num_categories = self.df[self.group_by].nunique()
         fig, axes = plt.subplots(
             num_categories,
             2,
@@ -666,7 +666,7 @@ class AssetGroupVisualizer(Visualizer):
         )
         for ax, (name, data) in zip(
             axes, 
-            self.data.groupby(self.group_by)
+            self.df.groupby(self.group_by)
         ):
             after_hours = data.open - data.close.shift()
             monthly_effect = after_hours\
@@ -707,9 +707,9 @@ class AssetGroupVisualizer(Visualizer):
             A seaborn pairplot
         """
         return sns.pairplot(
-            self.data.pivot_table(
+            self.df.pivot_table(
                 values='close', 
-                index=self.data.index, 
+                index=self.df.index, 
                 columns=self.group_by
             ),
             diag_kind='kde',
@@ -729,9 +729,9 @@ class AssetGroupVisualizer(Visualizer):
         Returns:
             A seaborn heatmap
         """
-        pivot = self.data.pivot_table(
+        pivot = self.df.pivot_table(
             values='close', 
-            index=self.data.index, 
+            index=self.df.index, 
             columns=self.group_by
         )
         if pct_change:
