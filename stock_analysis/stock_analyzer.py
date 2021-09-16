@@ -56,7 +56,7 @@ class StockAnalyzer:
             .low\
             .iat[0]
 
-    def resistance(self, level=1):
+    def calc_resistance(self, level=1):
         """
         Calculate the resistance at the given level.
 
@@ -76,7 +76,7 @@ class StockAnalyzer:
             raise ValueError('Not a valid level. Must be 1, 2, or 3')
         return res
 
-    def support(self, level=1):
+    def calc_support(self, level=1):
         """
         Calculate the support at the given level.
 
