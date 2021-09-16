@@ -20,7 +20,7 @@ def _sanitize_label(label):
         .lower()\
         .replace(' ', '_')
 
-def label_sanitizer(method):
+def sanitize_labels(method):
     """
     Decorator around a method that returns a dataframe to
     clean up all labels in said dataframe (column names and index name)
