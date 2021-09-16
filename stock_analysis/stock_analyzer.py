@@ -9,18 +9,18 @@ class StockAnalyzer:
     def __init__(self, df):
         """Create a `StockAnalyzer` object by passing in 
         a `pandas.DataFrame` of OHLC data."""
-        self.data = df
+        self.df = df
 
     @property
     def _max_periods(self):
         """Get the maximum number of trading periods that can be used 
         in calculations."""
-        return self.data.shape[0]
+        return self.df.shape[0]
 
     @property
     def close(self):
         """Get the close column of the data."""
-        return self.data.close
+        return self.df.close
 
     @property
     def pct_change(self):
@@ -35,7 +35,7 @@ class StockAnalyzer:
     @property
     def last_close(self):
         """Get the value of the last close in the data."""
-        return self.data\
+        return self.df\
             .last('1D')\
             .close\
             .iat[0]
@@ -43,7 +43,7 @@ class StockAnalyzer:
     @property
     def last_high(self):
         """Get the value of the last high in the data."""
-        return self.data\
+        return self.df\
             .last('1D')\
             .high\
             .iat[0]
@@ -51,7 +51,7 @@ class StockAnalyzer:
     @property
     def last_low(self):
         """Get the value of the last low in the data."""
-        return self.data\
+        return self.df\
             .last('1D')\
             .low\
             .iat[0]
@@ -149,7 +149,7 @@ class StockAnalyzer:
         Returns:
             A `pandas.Series` object.
         """
-        return self.data.pct_change()\
+        return self.df.pct_change()\
             .corrwith(
                 other.pct_change()
             )
@@ -217,7 +217,7 @@ class StockAnalyzer:
         Returns:
             Alpha, as a float.
         """
-        r = self.portfolio_return(self.data)
+        r = self.portfolio_return(self.df)
         r_f /= 100
         r_m = self.portfolio_return(index)
         beta = self.beta(index)
@@ -228,7 +228,7 @@ class StockAnalyzer:
         Determine if a stock is in a bear market, meaning its
         return in the last 2 months is a decline of 20% or more.
         """
-        validPeriod = self.data.last('2M')
+        validPeriod = self.df.last('2M')
         return self.portfolio_return(validPeriod) <= -0.2
 
     def is_bull_market(self):
@@ -236,7 +236,7 @@ class StockAnalyzer:
         Determine if a stock is in a bull market, meaning its
         return in the last 2 months is an increase of 20% or more.
         """
-        validPeriod = self.data.last('2M')
+        validPeriod = self.df.last('2M')
         return self.portfolio_return(validPeriod) >= 0.2
 
     def sharpe_ratio(self, r_f):
@@ -266,8 +266,8 @@ class AssetGroupAnalyzer:
         Create an `AssetGroupAnalyzer` object by passing in 
         a `pandas.DataFrame` and column to group by.
         """
-        self.data = df
-        if group_by not in self.data.columns:
+        self.df = df
+        if group_by not in self.df.columns:
             raise ValueError(
                 f'`group_by` column "{group_by}" not in dataframe.'
             )
@@ -281,7 +281,7 @@ class AssetGroupAnalyzer:
         """
         return dict(
             (group, StockAnalyzer(data))
-            for group, data in self.data.groupby(self.group_by)
+            for group, data in self.df.groupby(self.group_by)
         )
 
     def analyze(self, func_name, **kwargs):
