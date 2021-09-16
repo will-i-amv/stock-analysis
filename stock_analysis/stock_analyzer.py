@@ -154,7 +154,7 @@ class StockAnalyzer:
                 other.pct_change()
             )
 
-    def cv(self):
+    def calc_cv(self):
         """
         Calculate the coefficient of variation for the asset. Note
         that the lower this is, the better the risk/return tradeoff.
