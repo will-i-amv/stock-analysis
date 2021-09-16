@@ -183,7 +183,7 @@ class StockAnalyzer:
         denominator = index.close.pct_change().var()
         return numerator / denominator
 
-    def cumulative_returns(self):
+    def calc_cumulative_returns(self):
         """Calculate the series of cumulative returns for plotting."""
         return (1 + self.pct_change).cumprod()
 
@@ -253,8 +253,8 @@ class StockAnalyzer:
         Returns:
             The Sharpe ratio, as a float.
         """
-        numerator = self.cumulative_returns().last('1D').iat[0] - r_f
-        denominator = self.cumulative_returns().std()
+        numerator = self.calc_cumulative_returns().last('1D').iat[0] - r_f
+        denominator = self.calc_cumulative_returns().std()
         return numerator / denominator
 
 
