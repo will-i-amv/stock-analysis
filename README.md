@@ -134,7 +134,7 @@ Below are a few of the metrics you can calculate.
 from stock_analysis import StockAnalyzer
 
 nflx_analyzer = stock_analysis.StockAnalyzer(nflx)
-nflx_analyzer.annualized_volatility()
+nflx_analyzer.calc_annualized_volatility()
 ```
 
 #### Asset group

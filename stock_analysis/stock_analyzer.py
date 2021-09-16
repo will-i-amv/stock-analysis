@@ -113,7 +113,7 @@ class StockAnalyzer:
         validPeriods = min(periods, self._max_periods) * -1
         return self.pct_change[validPeriods:].std()
 
-    def annualized_volatility(self):
+    def calc_annualized_volatility(self):
         """Calculate the annualized volatility."""
         return self.calc_daily_std() * math.sqrt(252)
 
