@@ -166,7 +166,7 @@ class StockAnalyzer:
         q1, q3 = self.close.quantile([0.25, 0.75])
         return (q3 - q1) / (q3 + q1)
 
-    def beta(self, index):
+    def calc_beta(self, index):
         """
         Calculate the beta of the asset.
 
@@ -202,7 +202,7 @@ class StockAnalyzer:
         end = df.close[-1]
         return (end - start) / start
 
-    def alpha(self, index, r_f):
+    def calc_alpha(self, index, r_f):
         """
         Calculates the asset's alpha.
 
@@ -220,7 +220,7 @@ class StockAnalyzer:
         r = self.calc_portfolio_return(self.df)
         r_f /= 100
         r_m = self.calc_portfolio_return(index)
-        beta = self.beta(index)
+        beta = self.calc_beta(index)
         return r - r_f - beta * (r_m - r_f)
 
     def is_bear_market(self):

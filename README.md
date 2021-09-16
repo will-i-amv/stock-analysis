@@ -145,7 +145,7 @@ from stock_analysis import AssetGroupAnalyzer
 faang_analyzer = AssetGroupAnalyzer(faang)
 faang_analyzer.analyze('annualized_volatility')
 
-faang_analyzer.analyze('beta')
+faang_analyzer.analyze('calc_beta')
 ```
 
 ### Modeling
