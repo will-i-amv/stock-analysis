@@ -115,7 +115,7 @@ class StockAnalyzer:
 
     def annualized_volatility(self):
         """Calculate the annualized volatility."""
-        return self.daily_std() * math.sqrt(252)
+        return self.calc_daily_std() * math.sqrt(252)
 
     def calc_rolling_volatility(self, periods=252):
         """
