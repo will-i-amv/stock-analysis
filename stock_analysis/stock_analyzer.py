@@ -96,7 +96,7 @@ class StockAnalyzer:
             raise ValueError('Not a valid level. Must be 1, 2, or 3')
         return sup
 
-    def daily_std(self, periods=252):
+    def calc_daily_std(self, periods=252):
         """
         Calculate the daily standard deviation of percent change.
 
@@ -117,7 +117,7 @@ class StockAnalyzer:
         """Calculate the annualized volatility."""
         return self.daily_std() * math.sqrt(252)
 
-    def volatility(self, periods=252):
+    def calc_rolling_volatility(self, periods=252):
         """
         Calculate the rolling volatility.
 
@@ -138,7 +138,7 @@ class StockAnalyzer:
         denominator = math.sqrt(validPeriods)
         return numerator / denominator
 
-    def corr_with(self, other):
+    def calc_correlation_with(self, other):
         """
         Calculate the correlations between this dataframe and another
         for matching columns.
@@ -161,7 +161,7 @@ class StockAnalyzer:
         """
         return self.close.std() / self.close.mean()
 
-    def qcd(self):
+    def calc_qcd(self):
         """Calculate the quantile coefficient of dispersion."""
         q1, q3 = self.close.quantile([0.25, 0.75])
         return (q3 - q1) / (q3 + q1)
@@ -188,7 +188,7 @@ class StockAnalyzer:
         return (1 + self.pct_change).cumprod()
 
     @staticmethod
-    def portfolio_return(df):
+    def calc_portfolio_return(df):
         """
         Calculate the return assuming no distribution per share.
 
@@ -217,9 +217,9 @@ class StockAnalyzer:
         Returns:
             Alpha, as a float.
         """
-        r = self.portfolio_return(self.df)
+        r = self.calc_portfolio_return(self.df)
         r_f /= 100
-        r_m = self.portfolio_return(index)
+        r_m = self.calc_portfolio_return(index)
         beta = self.beta(index)
         return r - r_f - beta * (r_m - r_f)
 
@@ -229,7 +229,7 @@ class StockAnalyzer:
         return in the last 2 months is a decline of 20% or more.
         """
         validPeriod = self.df.last('2M')
-        return self.portfolio_return(validPeriod) <= -0.2
+        return self.calc_portfolio_return(validPeriod) <= -0.2
 
     def is_bull_market(self):
         """
@@ -237,9 +237,9 @@ class StockAnalyzer:
         return in the last 2 months is an increase of 20% or more.
         """
         validPeriod = self.df.last('2M')
-        return self.portfolio_return(validPeriod) >= 0.2
+        return self.calc_portfolio_return(validPeriod) >= 0.2
 
-    def sharpe_ratio(self, r_f):
+    def calc_sharpe_ratio(self, r_f):
         """
         Calculates the asset's Sharpe ratio.
 
