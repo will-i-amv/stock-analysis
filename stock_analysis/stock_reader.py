@@ -3,7 +3,7 @@ import datetime as dt
 import re
 import pandas as pd
 import pandas_datareader.data as web
-from .utils import label_sanitizer
+from .utils import sanitize_labels
 
 
 class StockReader:
@@ -79,7 +79,7 @@ class StockReader:
             raise ValueError('`index` must be a string')
         return cls._index_tickers.get(index, None)
 
-    @label_sanitizer
+    @sanitize_labels
     def get_ticker_data(self, ticker):
         """
         Get historical OHLC data for given date range and ticker
@@ -164,7 +164,7 @@ class StockReader:
             if last and isinstance(data, pd.Series) else \
             data
 
-    @label_sanitizer
+    @sanitize_labels
     def get_forex_rates(self, from_currency, to_currency, **kwargs):
         """
         Get daily foreign exchange rates from AlphaVantage.
