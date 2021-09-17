@@ -155,7 +155,7 @@ from stock_analysis import StockModeler
 
 #### Time series decomposition
 ```python
-decomposition = StockModeler.decompose(nflx, 20)
+decomposition = StockModeler.create_decompose_object(nflx, 20)
 fig = decomposition.plot()
 plt.show()
 ```
@@ -165,7 +165,7 @@ plt.show()
 #### ARIMA
 Build the model:
 ```python
-arima_model = StockModeler.arima(nflx, 10, 1, 5)
+arima_model = StockModeler.create_arima_model(nflx, 10, 1, 5)
 ```
 
 Check the residuals:
@@ -178,7 +178,7 @@ plt.show()
 
 Plot the predictions:
 ```python
-arima_ax = StockModeler.arima_predictions(
+arima_ax = StockModeler.calc_arima_predictions(
     arima_model, start=start, end=end,
     df=nflx, ax=axes[0], title='ARIMA'
 )
@@ -190,7 +190,7 @@ plt.show()
 #### Linear regression
 Build the model:
 ```python
-X, Y, lm = StockModeler.regression(nflx)
+X, Y, lm = StockModeler.create_linear_regression_model(nflx)
 ```
 
 Check the residuals:
@@ -203,7 +203,7 @@ plt.show()
 
 Plot the predictions:
 ```python
-linear_reg = StockModeler.regression_predictions(
+linear_reg = StockModeler.calc_linear_regression_predictions(
     lm, start=start, end=end,
     df=nflx, ax=axes[1], title='Linear Regression'
 )
