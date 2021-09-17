@@ -69,13 +69,13 @@ from stock_analysis import StockVisualizer
 
 netflix_viz = StockVisualizer(nflx)
 
-ax = netflix_viz.evolution_over_time(
+ax = netflix_viz.plot_evolution_over_time(
     'close',
     figsize=(10, 4),
     legend=False,
     title='Netflix closing price over time'
 )
-netflix_viz.add_reference_line(
+netflix_viz.plot_reference_line(
     ax,
     x=nflx.high.idxmax(),
     color='k',
@@ -91,7 +91,7 @@ plt.show()
 
 After hours trades:
 ```python
-netflix_viz.after_hours_trades()
+netflix_viz.plot_after_hours_trades()
 plt.show()
 ```
 
@@ -99,14 +99,14 @@ plt.show()
 
 Differential in closing price versus another asset:
 ```python
-netflix_viz.fill_between_other(fb)
+netflix_viz.plot_area_between_close_prices(fb)
 plt.show()
 ```
 <img src="images/nflx_vs_fb_closing_price.png?raw=true" align="center" width="600" alt="differential between NFLX and FB">
 
 Candlestick plots with resampling (uses `mplfinance`):
 ```python
-netflix_viz.candlestick(resample='2W', volume=True, xrotation=90, datetime_format='%Y-%b -')
+netflix_viz.plot_candlestick(resample='2W', volume=True, xrotation=90, datetime_format='%Y-%b -')
 ```
 
 <img src="images/candlestick.png?raw=true" align="center" width="600" alt="resampled candlestick plot">
@@ -119,7 +119,7 @@ Correlation heatmap:
 from stock_analysis import AssetGroupVisualizer
 
 faang_viz = AssetGroupVisualizer(faang)
-faang_viz.heatmap(True)
+faang_viz.plot_heatmap(True)
 ```
 
 <img src="images/faang_heatmap.png?raw=true" align="center" width="450" alt="correlation heatmap">
