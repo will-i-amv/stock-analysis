@@ -20,7 +20,7 @@ def _sanitize_label(label):
         .lower()\
         .replace(' ', '_')
 
-def label_sanitizer(method):
+def sanitize_labels(method):
     """
     Decorator around a method that returns a dataframe to
     clean up all labels in said dataframe (column names and index name)
@@ -93,39 +93,39 @@ def group_stocks(mapping):
         A new `pandas.DataFrame` object
     """
     group_df = pd.DataFrame()
-    for stock, stock_data in mapping.items():
-        df = stock_data.copy(deep=True)
-        df['name'] = stock
+    for asset_name, asset_df in mapping.items():
+        df = asset_df.copy(deep=True)
+        df['name'] = asset_name
         group_df = group_df.append(df, sort=True)
     group_df.index = pd.to_datetime(group_df.index)
     return group_df
 
 
 @validate_df(columns={'name'}, instance_method=False)
-def describe_group(data):
+def describe_group(df):
     """
     Run `describe()` on the asset group created with `group_stocks()`.
 
     Parameters:
-        - data: The group data resulting from `group_stocks()`
+        - df: The group dataframe resulting from `group_stocks()`
 
     Returns:
         The transpose of the grouped description statistics.
     """
-    return data\
+    return df\
         .groupby('name')\
         .describe()\
         .T
 
 
 @validate_df(columns=set(), instance_method=False)
-def make_portfolio(data, date_level='date'):
+def make_portfolio(df, date_level='date'):
     """
     Make a portfolio of assets by grouping by date and summing all columns.
 
     Note: the caller is responsible for making sure the dates line up across
     assets and handling when they don't.
     """
-    return data\
+    return df\
         .groupby(level=date_level)\
         .sum()

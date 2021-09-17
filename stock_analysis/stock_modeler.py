@@ -16,7 +16,7 @@ class StockModeler:
 
     @staticmethod
     @validate_df(columns={'close'}, instance_method=False)
-    def decompose(df, period, model='additive'):
+    def create_decompose_object(df, period, model='additive'):
         """
         Decompose the closing price of the stock into trend, seasonal,
         and remainder components.
@@ -39,7 +39,7 @@ class StockModeler:
 
     @staticmethod
     @validate_df(columns={'close'}, instance_method=False)
-    def arima(df, *, ar, i, ma, fit=True, freq='B'):
+    def create_arima_model(df, *, ar, i, ma, fit=True, freq='B'):
         """
         Create an ARIMA object for modeling time series.
 
@@ -69,7 +69,7 @@ class StockModeler:
 
     @staticmethod
     @validate_df(columns={'close'}, instance_method=False)
-    def arima_predictions(df, arima_model_fitted, start, end, plot=True, **kwargs):
+    def calc_arima_predictions(df, arima_model_fitted, start, end, plot=True, **kwargs):
         """
         Get ARIMA predictions as a `pandas.Series` object or plot.
 
@@ -104,7 +104,7 @@ class StockModeler:
 
     @staticmethod
     @validate_df(columns={'close'}, instance_method=False)
-    def regression(df):
+    def create_linear_regression_model(df):
         """
         Create linear regression of time series data with a lag of 1.
 
@@ -122,7 +122,7 @@ class StockModeler:
 
     @staticmethod
     @validate_df(columns={'close'}, instance_method=False)
-    def regression_predictions(df, model, start, end, plot=True, **kwargs):
+    def calc_linear_regression_predictions(df, model, start, end, plot=True, **kwargs):
         """
         Get linear regression predictions as a `pandas.Series` object or plot.
 
