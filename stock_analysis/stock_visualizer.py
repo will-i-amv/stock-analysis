@@ -13,10 +13,10 @@ class Visualizer:
     @validate_df(columns={'open', 'high', 'low', 'close'})
     def __init__(self, df):
         """Visualizer has a `pandas.DataFrame` object as an attribute."""
-        self.data = df
+        self.df = df
 
     @staticmethod
-    def add_reference_line(ax, x=None, y=None, **kwargs):
+    def plot_reference_line(ax, x=None, y=None, **kwargs):
         """
         Static method for adding reference lines to plots.
 
@@ -57,7 +57,7 @@ class Visualizer:
         return ax
 
     @staticmethod
-    def shade_region(ax, x=tuple(), y=tuple(), **kwargs):
+    def plot_shaded_region(ax, x=tuple(), y=tuple(), **kwargs):
         """
         Static method for shading a region on a plot.
 
@@ -98,7 +98,7 @@ class Visualizer:
             The input as a list or tuple.
         """
         if not isinstance(items, (list, tuple)):
-            items = list(items)
+            items = [items]
         return items
 
     def _window_calc(self, column, periods, name, func, named_arg, **kwargs):
@@ -108,7 +108,7 @@ class Visualizer:
         """
         raise NotImplementedError('To be implemented by subclasses.')
 
-    def moving_average(self, column, periods, **kwargs):
+    def plot_moving_average(self, column, periods, **kwargs):
         """
         Add line(s) for the moving average of a column.
 
@@ -131,7 +131,7 @@ class Visualizer:
             **kwargs
         )
 
-    def exp_smoothing(self, column, periods, **kwargs):
+    def plot_exp_smoothing(self, column, periods, **kwargs):
         """
         Add line(s) for the exponentially smoothed moving average of a column.
 
@@ -155,31 +155,31 @@ class Visualizer:
         )
 
     # abstract methods for subclasses to define
-    def evolution_over_time(self, column, **kwargs):
+    def plot_evolution_over_time(self, column, **kwargs):
         """To be implemented by subclasses for generating line plots."""
         raise NotImplementedError('To be implemented by subclasses.')
 
-    def boxplot(self, **kwargs):
+    def plot_boxplot(self, **kwargs):
         """To be implemented by subclasses for generating box plots."""
         raise NotImplementedError('To be implemented by subclasses.')
 
-    def histogram(self, column, **kwargs):
+    def plot_histogram(self, column, **kwargs):
         """To be implemented by subclasses for generating histograms."""
         raise NotImplementedError('To be implemented by subclasses.')
 
-    def after_hours_trades(self):
+    def plot_after_hours_trades(self):
         """To be implemented by subclasses for showing the effect 
         of after-hours trading."""
         raise NotImplementedError('To be implemented by subclasses.')
 
-    def pairplot(self, **kwargs):
+    def plot_pairplot(self, **kwargs):
         """To be implemented by subclasses for generating pairplots."""
         raise NotImplementedError('To be implemented by subclasses.')
 
 
 class StockVisualizer(Visualizer):
     """Visualizer for a single stock."""
-    def evolution_over_time(self, column, **kwargs):
+    def plot_evolution_over_time(self, column, **kwargs):
         """
         Visualize the evolution over time of a column.
 
@@ -191,9 +191,9 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.data.plot.line(y=column, **kwargs)
+        return self.df.plot.line(y=column, **kwargs)
 
-    def boxplot(self, **kwargs):
+    def plot_boxplot(self, **kwargs):
         """
         Generate box plots for all columns.
 
@@ -204,9 +204,9 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.data.plot(kind='box', **kwargs)
+        return self.df.plot(kind='box', **kwargs)
 
-    def histogram(self, column, **kwargs):
+    def plot_histogram(self, column, **kwargs):
         """
         Generate the histogram of a given column.
 
@@ -218,9 +218,9 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.data.plot.hist(y=column, **kwargs)
+        return self.df.plot.hist(y=column, **kwargs)
 
-    def candlestick(self, date_range=None, resample=None, volume=False, **kwargs):
+    def plot_candlestick(self, date_range=None, resample=None, volume=False, **kwargs):
         """
         Create a candlestick plot for the OHLC data with optional aggregation,
         subset of the date range, and volume.
@@ -240,10 +240,10 @@ class StockVisualizer(Visualizer):
         """
         if not date_range:
             date_range = slice(
-                self.data.index.min(), 
-                self.data.index.max()
+                self.df.index.min(), 
+                self.df.index.max()
             )
-        plot_data = self.data.loc[date_range]
+        plot_data = self.df.loc[date_range]
         if resample:
             agg_dict = {
                 'open': 'first', 
@@ -268,14 +268,14 @@ class StockVisualizer(Visualizer):
             **kwargs
         )
 
-    def after_hours_trades(self):
+    def plot_after_hours_trades(self):
         """
         Visualize the effect of after-hours trading on this asset.
 
         Returns:
             A matplotlib `Axes` object.
         """
-        after_hours = self.data.open - self.data.close.shift()
+        after_hours = self.df.open - self.df.close.shift()
         monthly_effect = after_hours\
             .resample('1M')\
             .sum()
@@ -304,7 +304,7 @@ class StockVisualizer(Visualizer):
         return axes
 
     @staticmethod
-    def fill_between(y1, y2, title, label_higher, label_lower, figsize, legend_x):
+    def plot_area_between(y1, y2, title, label_higher, label_lower, figsize, legend_x):
         """
         Visualize the difference between assets.
 
@@ -348,7 +348,7 @@ class StockVisualizer(Visualizer):
                 .set_visible(False)
         return fig.axes[0]
 
-    def open_to_close(self, figsize=(10, 4)):
+    def plot_open_to_close(self, figsize=(10, 4)):
         """
         Visualize the daily change in price from open to close.
 
@@ -359,8 +359,8 @@ class StockVisualizer(Visualizer):
             A matplotlib `Axes` object.
         """
         ax = self.fill_between(
-            self.data.open, 
-            self.data.close, 
+            self.df.open, 
+            self.df.close, 
             figsize=figsize,
             legend_x=0.67, 
             title='Daily price change (open to close)',
@@ -370,7 +370,7 @@ class StockVisualizer(Visualizer):
         ax.set_ylabel('price')
         return ax
 
-    def fill_between_other(self, other_df, figsize=(10, 4)):
+    def plot_area_between_close_prices(self, other_df, figsize=(10, 4)):
         """
         Visualize the difference in closing price between assets.
 
@@ -381,9 +381,9 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        ax = self.fill_between(
+        ax = self.plot_area_between(
             other_df.open, 
-            self.data.close, 
+            self.df.close, 
             figsize=figsize, 
             legend_x=0.7,
             title='Differential between asset closing price (this - other)',
@@ -412,7 +412,7 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        ax = self.data.plot(
+        ax = self.df.plot(
             y=column, 
             **kwargs
         )
@@ -421,7 +421,7 @@ class StockVisualizer(Visualizer):
                 period\
                 if isinstance(period, str) else \
                 str(period)
-            self.data[column]\
+            self.df[column]\
                 .pipe(func, **{named_arg: period})\
                 .mean()\
                 .plot(
@@ -432,7 +432,7 @@ class StockVisualizer(Visualizer):
         plt.legend()
         return ax
 
-    def pairplot(self, **kwargs):
+    def plot_pairplot(self, **kwargs):
         """
         Generate a seaborn pairplot for this asset.
 
@@ -442,9 +442,9 @@ class StockVisualizer(Visualizer):
         Returns:
             A seaborn pairplot
         """
-        return sns.pairplot(self.data, **kwargs)
+        return sns.pairplot(self.df, **kwargs)
 
-    def jointplot(self, other, column, **kwargs):
+    def plot_jointplot(self, other, column, **kwargs):
         """
         Generate a seaborn jointplot for given column in asset compared to
         another asset.
@@ -458,12 +458,12 @@ class StockVisualizer(Visualizer):
             A seaborn jointplot
         """
         return sns.jointplot(
-            x=self.data[column],
+            x=self.df[column],
             y=other[column],
             **kwargs
         )
 
-    def correlation_heatmap(self, other):
+    def plot_correlation_heatmap(self, other):
         """
         Plot the correlations between this asset and
         another one with a heatmap.
@@ -474,7 +474,7 @@ class StockVisualizer(Visualizer):
         Returns:
             A seaborn heatmap
         """
-        corrs = self.data.pct_change()\
+        corrs = self.df.pct_change()\
             .corrwith(
                 other.pct_change()
             )
@@ -491,8 +491,8 @@ class StockVisualizer(Visualizer):
         return sns.heatmap(
             matrix,
             annot=True,
-            xticklabels=self.data.columns,
-            yticklabels=self.data.columns,
+            xticklabels=self.df.columns,
+            yticklabels=self.df.columns,
             center=0,
             mask=mask,
             vmin=-1,
@@ -507,7 +507,7 @@ class AssetGroupVisualizer(Visualizer):
         super().__init__(df)
         self.group_by = group_by
 
-    def evolution_over_time(self, column, **kwargs):
+    def plot_evolution_over_time(self, column, **kwargs):
         """
         Visualize the evolution over time of a column for all assets in group.
 
@@ -528,15 +528,15 @@ class AssetGroupVisualizer(Visualizer):
         else:
             ax = kwargs.pop('ax')
         return sns.lineplot(
-            x=self.data.index,
+            x=self.df.index,
             y=column,
             hue=self.group_by,
-            data=self.data,
+            data=self.df,
             ax=ax,
             **kwargs
         )
 
-    def boxplot(self, column, **kwargs):
+    def plot_boxplot(self, column, **kwargs):
         """
         Generate box plots for a given column in all assets.
 
@@ -551,7 +551,7 @@ class AssetGroupVisualizer(Visualizer):
         return sns.boxplot(
             x=self.group_by,
             y=column,
-            data=self.data,
+            data=self.df,
             **kwargs
         )
 
@@ -562,7 +562,7 @@ class AssetGroupVisualizer(Visualizer):
         Returns:
             The matplotlib `Figure` and `Axes` objects to plot with.
         """
-        subplots_needed = self.data[self.group_by].nunique()
+        subplots_needed = self.df[self.group_by].nunique()
         rows = math.ceil(subplots_needed / 2)
         fig, axes = plt.subplots(
             rows, 
@@ -577,7 +577,7 @@ class AssetGroupVisualizer(Visualizer):
                 fig.delaxes(axes[i]) # Can't use list comprehension here
         return fig, axes
 
-    def histogram(self, column, **kwargs):
+    def plot_histogram(self, column, **kwargs):
         """
         Generate the histogram of a given column for all assets in group.
 
@@ -592,7 +592,7 @@ class AssetGroupVisualizer(Visualizer):
         fig, axes = self._get_layout()
         for ax, (name, data) in zip(
             axes, 
-            self.data.groupby(self.group_by)
+            self.df.groupby(self.group_by)
         ):
             sns.histplot(
                 data[column], 
@@ -624,9 +624,9 @@ class AssetGroupVisualizer(Visualizer):
         fig, axes = self._get_layout()
         for ax, asset_name in zip(
             axes, 
-            self.data[self.group_by].unique()
+            self.df[self.group_by].unique()
         ):
-            subset = self.data\
+            subset = self.df\
                 .query(f'{self.group_by} == "{asset_name}"')
             ax = subset.plot(
                 y=column, 
@@ -651,14 +651,14 @@ class AssetGroupVisualizer(Visualizer):
         plt.tight_layout()
         return ax
 
-    def after_hours_trades(self):
+    def plot_after_hours_trades(self):
         """
         Visualize the effect of after-hours trading on this asset group.
 
         Returns:
             A matplotlib `Axes` object.
         """
-        num_categories = self.data[self.group_by].nunique()
+        num_categories = self.df[self.group_by].nunique()
         fig, axes = plt.subplots(
             num_categories,
             2,
@@ -666,7 +666,7 @@ class AssetGroupVisualizer(Visualizer):
         )
         for ax, (name, data) in zip(
             axes, 
-            self.data.groupby(self.group_by)
+            self.df.groupby(self.group_by)
         ):
             after_hours = data.open - data.close.shift()
             monthly_effect = after_hours\
@@ -696,9 +696,9 @@ class AssetGroupVisualizer(Visualizer):
         plt.tight_layout()
         return axes
 
-    def pairplot(self, **kwargs):
+    def plot_pairplot(self, **kwargs):
         """
-        Generate a seaborn pairplot for this asset group.
+        Generate a seaborn plot_pairplot for this asset group.
 
         Parameters:
             - kwargs: Keyword arguments to pass down to `sns.pairplot()`
@@ -707,16 +707,16 @@ class AssetGroupVisualizer(Visualizer):
             A seaborn pairplot
         """
         return sns.pairplot(
-            self.data.pivot_table(
+            self.df.pivot_table(
                 values='close', 
-                index=self.data.index, 
+                index=self.df.index, 
                 columns=self.group_by
             ),
             diag_kind='kde',
             **kwargs
         )
 
-    def heatmap(self, pct_change=True, **kwargs):
+    def plot_heatmap(self, pct_change=True, **kwargs):
         """
         Generate a seaborn heatmap for correlations between assets.
 
@@ -729,9 +729,9 @@ class AssetGroupVisualizer(Visualizer):
         Returns:
             A seaborn heatmap
         """
-        pivot = self.data.pivot_table(
+        pivot = self.df.pivot_table(
             values='close', 
-            index=self.data.index, 
+            index=self.df.index, 
             columns=self.group_by
         )
         if pct_change:

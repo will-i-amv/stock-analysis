@@ -69,13 +69,13 @@ from stock_analysis import StockVisualizer
 
 netflix_viz = StockVisualizer(nflx)
 
-ax = netflix_viz.evolution_over_time(
+ax = netflix_viz.plot_evolution_over_time(
     'close',
     figsize=(10, 4),
     legend=False,
     title='Netflix closing price over time'
 )
-netflix_viz.add_reference_line(
+netflix_viz.plot_reference_line(
     ax,
     x=nflx.high.idxmax(),
     color='k',
@@ -91,7 +91,7 @@ plt.show()
 
 After hours trades:
 ```python
-netflix_viz.after_hours_trades()
+netflix_viz.plot_after_hours_trades()
 plt.show()
 ```
 
@@ -99,14 +99,14 @@ plt.show()
 
 Differential in closing price versus another asset:
 ```python
-netflix_viz.fill_between_other(fb)
+netflix_viz.plot_area_between_close_prices(fb)
 plt.show()
 ```
 <img src="images/nflx_vs_fb_closing_price.png?raw=true" align="center" width="600" alt="differential between NFLX and FB">
 
 Candlestick plots with resampling (uses `mplfinance`):
 ```python
-netflix_viz.candlestick(resample='2W', volume=True, xrotation=90, datetime_format='%Y-%b -')
+netflix_viz.plot_candlestick(resample='2W', volume=True, xrotation=90, datetime_format='%Y-%b -')
 ```
 
 <img src="images/candlestick.png?raw=true" align="center" width="600" alt="resampled candlestick plot">
@@ -119,7 +119,7 @@ Correlation heatmap:
 from stock_analysis import AssetGroupVisualizer
 
 faang_viz = AssetGroupVisualizer(faang)
-faang_viz.heatmap(True)
+faang_viz.plot_heatmap(True)
 ```
 
 <img src="images/faang_heatmap.png?raw=true" align="center" width="450" alt="correlation heatmap">
@@ -134,7 +134,7 @@ Below are a few of the metrics you can calculate.
 from stock_analysis import StockAnalyzer
 
 nflx_analyzer = stock_analysis.StockAnalyzer(nflx)
-nflx_analyzer.annualized_volatility()
+nflx_analyzer.calc_annualized_volatility()
 ```
 
 #### Asset group
@@ -145,7 +145,7 @@ from stock_analysis import AssetGroupAnalyzer
 faang_analyzer = AssetGroupAnalyzer(faang)
 faang_analyzer.analyze('annualized_volatility')
 
-faang_analyzer.analyze('beta')
+faang_analyzer.analyze('calc_beta')
 ```
 
 ### Modeling
@@ -155,7 +155,7 @@ from stock_analysis import StockModeler
 
 #### Time series decomposition
 ```python
-decomposition = StockModeler.decompose(nflx, 20)
+decomposition = StockModeler.create_decompose_object(nflx, 20)
 fig = decomposition.plot()
 plt.show()
 ```
@@ -165,7 +165,7 @@ plt.show()
 #### ARIMA
 Build the model:
 ```python
-arima_model = StockModeler.arima(nflx, 10, 1, 5)
+arima_model = StockModeler.create_arima_model(nflx, 10, 1, 5)
 ```
 
 Check the residuals:
@@ -178,7 +178,7 @@ plt.show()
 
 Plot the predictions:
 ```python
-arima_ax = StockModeler.arima_predictions(
+arima_ax = StockModeler.calc_arima_predictions(
     arima_model, start=start, end=end,
     df=nflx, ax=axes[0], title='ARIMA'
 )
@@ -190,7 +190,7 @@ plt.show()
 #### Linear regression
 Build the model:
 ```python
-X, Y, lm = StockModeler.regression(nflx)
+X, Y, lm = StockModeler.create_linear_regression_model(nflx)
 ```
 
 Check the residuals:
@@ -203,7 +203,7 @@ plt.show()
 
 Plot the predictions:
 ```python
-linear_reg = StockModeler.regression_predictions(
+linear_reg = StockModeler.calc_linear_regression_predictions(
     lm, start=start, end=end,
     df=nflx, ax=axes[1], title='Linear Regression'
 )
