@@ -36,15 +36,17 @@ def sanitize_labels(method):
     @wraps(method)
     def method_wrapper(self, *args, **kwargs):
         df = method(self, *args, **kwargs)
-        df.columns = list(
-            _sanitize_label(col) 
-            for col in df.columns
+        renamed_index = df.index.rename(
+            _sanitize_label(df.index.name)
         )
-        df.index.rename(
-            _sanitize_label(df.index.name),
-            inplace=True
-        )
-        return df
+        return df\
+            .reindex(renamed_index)\
+            .rename(
+                columns=dict(
+                    (column, _sanitize_label(column)) 
+                    for column in df.columns
+                ),
+            )
     return method_wrapper
 
 
