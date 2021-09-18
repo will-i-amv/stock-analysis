@@ -94,13 +94,12 @@ def group_stocks(mapping):
     Returns:
         A new `pandas.DataFrame` object
     """
-    group_df = pd.DataFrame()
-    for asset_name, asset_df in mapping.items():
-        df = asset_df.copy(deep=True)
-        df['name'] = asset_name
-        group_df = group_df.append(df, sort=True)
-    group_df.index = pd.to_datetime(group_df.index)
-    return group_df
+    return pd.concat(
+        list(
+            asset_df.assign(name=asset_name)
+            for asset_name, asset_df in mapping.items()
+        )
+    )
 
 
 @validate_df(columns={'name'}, instance_method=False)
