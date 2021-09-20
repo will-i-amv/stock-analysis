@@ -200,14 +200,17 @@ class StockReader:
         Returns:
             A `pandas.DataFrame` with daily exchange rates.
         """
-        data = web\
-            .DataReader(
-                f'{from_currency}/{to_currency}', 
-                'av-forex-daily',
-                start=self.start, 
-                end=self.end, 
-                **kwargs
+        df = web.DataReader(
+            f'{from_currency}/{to_currency}', 
+            'av-forex-daily',
+            start=self.start, 
+            end=self.end, 
+            **kwargs
+        )
+        return df\
+            .reindex(
+                index=df.index.rename('date')
             )\
-            .rename(pd.to_datetime)
-        data.index.rename('date', inplace=True)
-        return data
+            .rename(
+                index=pd.to_datetime
+            )
