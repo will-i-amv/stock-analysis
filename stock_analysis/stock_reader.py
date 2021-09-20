@@ -6,6 +6,25 @@ import pandas_datareader.data as web
 from .utils import sanitize_labels
 
 
+def sanitize_date(date):
+    """
+    Clean up a date object by converting it to a string in yyyymmd format.
+    Remove all non-digit characters in case the argument is not 
+    a dt.date object.
+
+    Parameters:
+        - date: The date you want to fix.
+
+    Returns:
+        The sanitized date.
+    """
+    return (
+        date.strftime('%Y%m%d')
+        if isinstance(date, dt.date) else
+        re.sub(r'\D', '', date)
+    )
+
+
 class StockReader:
     """Class for reading financial data from websites."""
     _index_tickers = {
@@ -44,10 +63,7 @@ class StockReader:
             A `StockReader` object.
         """
         self.start, self.end = map(
-            lambda x: \
-                x.strftime('%Y%m%d') \
-                if isinstance(x, dt.date) else \
-                re.sub(r'\D', '', x),
+            sanitize_date,
             [start, end or dt.date.today()]
         )
         if self.start >= self.end:
@@ -92,9 +108,9 @@ class StockReader:
             A `pandas.DataFrame` object with the stock data.
         """
         return web.get_data_yahoo(
-            ticker, 
-            self.start, 
-            self.end
+            symbols=ticker, 
+            start=self.start, 
+            end=self.end
         )
 
     def get_index_data(self, index):
@@ -118,8 +134,9 @@ class StockReader:
                 'Index not supported. '
                 f"Available tickers are: {', '.join(self.available_tickers)}"
             )
-        indexTicker = self.get_index_ticker(index)
-        return self.get_ticker_data(indexTicker)
+        return self.get_ticker_data(
+            self.get_index_ticker(index)
+        )
 
     def get_bitcoin_data(self, currency_code):
         """
@@ -151,18 +168,22 @@ class StockReader:
             A single value or a `pandas.Series` object with 
             the risk-free rate(s) of return.
         """
-        data = web.DataReader(
-            'DGS10', 
-            'fred', 
+        df = web.DataReader(
+            name='DGS10', 
+            data_source='fred', 
             start=self.start, 
             end=self.end
         )
-        data.index.rename('date', inplace=True)
-        data = data.squeeze()
-        return \
-            data.asof(self.end) \
-            if last and isinstance(data, pd.Series) else \
-            data
+        rates = df\
+            .reindex(
+                index=df.index.rename('date')
+            )\
+            .squeeze()
+        return (
+            rates.asof(self.end)
+            if last else
+            rates
+        )
 
     @sanitize_labels
     def get_forex_rates(self, from_currency, to_currency, **kwargs):
@@ -182,14 +203,17 @@ class StockReader:
         Returns:
             A `pandas.DataFrame` with daily exchange rates.
         """
-        data = web\
-            .DataReader(
-                f'{from_currency}/{to_currency}', 
-                'av-forex-daily',
-                start=self.start, 
-                end=self.end, 
-                **kwargs
+        df = web.DataReader(
+            name=f'{from_currency}/{to_currency}', 
+            data_source='av-forex-daily',
+            start=self.start, 
+            end=self.end, 
+            **kwargs
+        )
+        return df\
+            .reindex(
+                index=df.index.rename('date')
             )\
-            .rename(pd.to_datetime)
-        data.index.rename('date', inplace=True)
-        return data
+            .rename(
+                index=pd.to_datetime
+            )
