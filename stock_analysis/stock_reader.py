@@ -168,12 +168,15 @@ class StockReader:
             A single value or a `pandas.Series` object with 
             the risk-free rate(s) of return.
         """
-        rates = web\
-            .DataReader(
-                'DGS10', 
-                'fred', 
-                start=self.start, 
-                end=self.end
+        df = web.DataReader(
+            'DGS10', 
+            'fred', 
+            start=self.start, 
+            end=self.end
+        )
+        rates = df\
+            .reindex(
+                index=df.index.rename('date')
             )\
             .squeeze()
         return (
