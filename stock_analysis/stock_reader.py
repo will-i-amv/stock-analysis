@@ -108,9 +108,9 @@ class StockReader:
             A `pandas.DataFrame` object with the stock data.
         """
         return web.get_data_yahoo(
-            ticker, 
-            self.start, 
-            self.end
+            symbols=ticker, 
+            start=self.start, 
+            end=self.end
         )
 
     def get_index_data(self, index):
@@ -169,8 +169,8 @@ class StockReader:
             the risk-free rate(s) of return.
         """
         df = web.DataReader(
-            'DGS10', 
-            'fred', 
+            name='DGS10', 
+            data_source='fred', 
             start=self.start, 
             end=self.end
         )
@@ -204,8 +204,8 @@ class StockReader:
             A `pandas.DataFrame` with daily exchange rates.
         """
         df = web.DataReader(
-            f'{from_currency}/{to_currency}', 
-            'av-forex-daily',
+            name=f'{from_currency}/{to_currency}', 
+            data_source='av-forex-daily',
             start=self.start, 
             end=self.end, 
             **kwargs
