@@ -6,6 +6,25 @@ import pandas_datareader.data as web
 from .utils import sanitize_labels
 
 
+def sanitize_date(date):
+    """
+    Clean up a date object by converting it to a string in yyyymmd format.
+    Remove all non-digit characters in case the argument is not 
+    a dt.date object.
+
+    Parameters:
+        - date: The date you want to fix.
+
+    Returns:
+        The sanitized date.
+    """
+    return (
+        date.strftime('%Y%m%d')
+        if isinstance(date, dt.date) else
+        re.sub(r'\D', '', date)
+    )
+
+
 class StockReader:
     """Class for reading financial data from websites."""
     _index_tickers = {
@@ -44,10 +63,7 @@ class StockReader:
             A `StockReader` object.
         """
         self.start, self.end = map(
-            lambda x: \
-                x.strftime('%Y%m%d') \
-                if isinstance(x, dt.date) else \
-                re.sub(r'\D', '', x),
+            sanitize_date,
             [start, end or dt.date.today()]
         )
         if self.start >= self.end:
