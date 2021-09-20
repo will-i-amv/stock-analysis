@@ -20,6 +20,7 @@ def _sanitize_label(label):
         .lower()\
         .replace(' ', '_')
 
+
 def sanitize_labels(method):
     """
     Decorator around a method that returns a dataframe to
