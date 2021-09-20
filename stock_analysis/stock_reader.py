@@ -168,18 +168,19 @@ class StockReader:
             A single value or a `pandas.Series` object with 
             the risk-free rate(s) of return.
         """
-        data = web.DataReader(
-            'DGS10', 
-            'fred', 
-            start=self.start, 
-            end=self.end
+        rates = web\
+            .DataReader(
+                'DGS10', 
+                'fred', 
+                start=self.start, 
+                end=self.end
+            )\
+            .squeeze()
+        return (
+            rates.asof(self.end)
+            if last else
+            rates
         )
-        data.index.rename('date', inplace=True)
-        data = data.squeeze()
-        return \
-            data.asof(self.end) \
-            if last and isinstance(data, pd.Series) else \
-            data
 
     @sanitize_labels
     def get_forex_rates(self, from_currency, to_currency, **kwargs):
