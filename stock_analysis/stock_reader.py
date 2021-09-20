@@ -134,8 +134,9 @@ class StockReader:
                 'Index not supported. '
                 f"Available tickers are: {', '.join(self.available_tickers)}"
             )
-        indexTicker = self.get_index_ticker(index)
-        return self.get_ticker_data(indexTicker)
+        return self.get_ticker_data(
+            self.get_index_ticker(index)
+        )
 
     def get_bitcoin_data(self, currency_code):
         """
