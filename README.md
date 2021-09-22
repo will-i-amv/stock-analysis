@@ -299,4 +299,4 @@ plt.show()
 
 ## Credits
 
-Check the original repo [here](https://github.com/stefmolin/stock-analysis), this is an improved version of @stefmolin original work.
+Check the original repo [here](https://github.com/stefmolin/stock-analysis), this is an improved version of that.
