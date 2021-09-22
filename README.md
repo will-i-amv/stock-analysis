@@ -1,38 +1,85 @@
 # Stock Analysis
-Package for making elements of technical analysis of a stock easier. This package is meant to be a starting point for you to develop your own. As such, all the instructions for installing/setup will be assuming you will continue to develop on your end.
 
-## Setup
+This is pandas-based package intended for automating the technical analysis of a stock, index or a cryptocurrency such as bitcoin. 
+
+## Setting Up
+
+* Clone this repo:
+
 ```shell
-# should install requirements.txt packages
-$ pip3 install -e stock-analysis # path to top level where setup.py is
+$ git clone https://github.com/will-i-amv/stock-analysis.git 
+```
 
-# if not, install them explicitly
-$ pip3 install -r requirements.txt
+* Go to the cloned folder's parent directory and create a virtual environment:
+
+```shell
+$ python3 -m venv env
+$ source env/bin/activate
+(env)$ 
+```
+
+* Install the package's dependencies:
+
+```shell
+(env)$ pip3 install -r stock-analysis/requirements.txt
+```
+
+* Install the package in editable mode:
+
+```shell
+(env)$ pip3 install -e stock-analysis
+```
+
+## Running from a Jupyter notebook
+
+* Activate the environment
+
+```shell
+$ source env/bin/activate
+(env)$ 
+```
+
+* Run the Tests.ipynb jupyter notebook:
+
+```shell
+(env)$ jupyter lab stock-analysis/Tests.ipynb
+```
+
+* Deactivate the environment when finished
+
+```shell
+(env)$ deactivate
+$ 
 ```
 
 ## Usage
-This section will show some of the functionality of each class; however, it is by no means exhaustive.
 
-### Getting data
+This section will show some of the functionality of each module; however, it is by no means exhaustive.
+
+### Getting data with the stock_reader module
+
 ```python
 from stock_analysis import StockReader
 
 reader = StockReader('2017-01-01', '2018-12-31')
 
-# get bitcoin data in USD
-bitcoin = reader.get_bitcoin_data('USD')
-
-# get faang data
+# Get faang data
+tickers = ['FB', 'AAPL', 'AMZN', 'NFLX', 'GOOG']
 fb, aapl, amzn, nflx, goog = (
     reader.get_ticker_data(ticker) \
-    for ticker in ['FB', 'AAPL', 'AMZN', 'NFLX', 'GOOG']
+    for ticker in tickers
 )
 
-# get S&P 500 data
+# Get S&P 500 data
 sp = reader.get_index_data('S&P 500')
+
+# Get bitcoin data in USD
+bitcoin = reader.get_bitcoin_data('USD')
+
 ```
 
-### Grouping data
+* Group stocks by name and display their summary statistics:
+
 ```python
 from stock_analysis.utils import group_stocks, describe_group
 
@@ -46,23 +93,23 @@ faang = group_stocks(
     }
 )
 
-# describe the group
 describe_group(faang)
 ```
 
-### Building a portfolio
-Groups assets by date and sums columns to build a portfolio.
+* Group stocks by date and sum their columns to build a portfolio:
+
 ```python
 from stock_analysis.utils import make_portfolio
 
 faang_portfolio = make_portfolio(faang)
 ```
 
-### Visualizing data
-Be sure to check out the other methods here for different plot types, reference lines, shaded regions, and more!
+### Visualizing data with the stock_visualizer module
 
-#### Single asset
-Evolution over time:
+#### For a single asset
+
+* Evolution over time:
+
 ```python
 import matplotlib.pyplot as plt
 from stock_analysis import StockVisualizer
@@ -89,7 +136,8 @@ plt.show()
 
 <img src="images/netflix_line_plot.png?raw=true" align="center" width="600" alt="line plot with reference line">
 
-After hours trades:
+* After hours trades:
+
 ```python
 netflix_viz.plot_after_hours_trades()
 plt.show()
@@ -97,24 +145,33 @@ plt.show()
 
 <img src="images/netflix_after_hours_trades.png?raw=true" align="center" width="800" alt="after hours trades plot">
 
-Differential in closing price versus another asset:
+* Differential in closing price versus another asset:
+
 ```python
 netflix_viz.plot_area_between_close_prices(fb)
 plt.show()
 ```
 <img src="images/nflx_vs_fb_closing_price.png?raw=true" align="center" width="600" alt="differential between NFLX and FB">
 
-Candlestick plots with resampling (uses `mplfinance`):
+* Candlestick plots with resampling (uses the `mplfinance` library):
+
 ```python
-netflix_viz.plot_candlestick(resample='2W', volume=True, xrotation=90, datetime_format='%Y-%b -')
+netflix_viz.plot_candlestick(
+    resample='2W', 
+    volume=True, 
+    xrotation=90, 
+    datetime_format='%Y-%b -'
+)
 ```
 
 <img src="images/candlestick.png?raw=true" align="center" width="600" alt="resampled candlestick plot">
 
-*Note: run `help()` on `StockVisualizer` for more visualizations*
+*Note: run `help()` on `StockVisualizer` for more visualization options*
 
-#### Asset groups
-Correlation heatmap:
+#### For asset groups
+
+* Correlation heatmap:
+
 ```python
 from stock_analysis import AssetGroupVisualizer
 
@@ -124,36 +181,49 @@ faang_viz.plot_heatmap(True)
 
 <img src="images/faang_heatmap.png?raw=true" align="center" width="450" alt="correlation heatmap">
 
-*Note: run `help()` on `AssetGroupVisualizer` for more visualizations. This object has many of the visualizations of the `StockVisualizer` class.*
 
-### Analyzing data
-Below are a few of the metrics you can calculate.
+### Analyzing data with the stock_analysis module
 
-#### Single asset
+Below are some metrics you can calculate.
+
+#### For a single asset
+
 ```python
 from stock_analysis import StockAnalyzer
 
 nflx_analyzer = stock_analysis.StockAnalyzer(nflx)
+
+# Annualized volatility
 nflx_analyzer.calc_annualized_volatility()
+
+# Sharpe ratio
+nflx_analyzer.calc_sharpe_ratio()
 ```
 
-#### Asset group
-Methods of the `StockAnalyzer` class can be accessed by name with the `AssetGroupAnalyzer` class's `analyze()` method.
+#### For asset groups
+
+* Methods of the `StockAnalyzer` class can be accessed by name with the `AssetGroupAnalyzer` class's `analyze()` method.
+
 ```python
 from stock_analysis import AssetGroupAnalyzer
 
 faang_analyzer = AssetGroupAnalyzer(faang)
-faang_analyzer.analyze('annualized_volatility')
 
+faang_analyzer.analyze('annualized_volatility')
+faang_analyzer.analyze('calc_alpha')
 faang_analyzer.analyze('calc_beta')
 ```
 
-### Modeling
+### Modeling data with the stock_modeler module
+
 ```python
 from stock_analysis import StockModeler
 ```
 
 #### Time series decomposition
+
+* Build the model and plot the results:
+
 ```python
 decomposition = StockModeler.create_decompose_object(nflx, 20)
 fig = decomposition.plot()
@@ -162,13 +232,16 @@ plt.show()
 
 <img src="images/nflx_ts_decomposition.png?raw=true" align="center" width="450" alt="time series decomposition">
 
-#### ARIMA
-Build the model:
+#### ARIMA model
+
+* Build the model:
+
 ```python
 arima_model = StockModeler.create_arima_model(nflx, 10, 1, 5)
 ```
 
-Check the residuals:
+* Check the residuals:
+
 ```python
 StockModeler.plot_residuals(arima_model)
 plt.show()
@@ -176,24 +249,32 @@ plt.show()
 
 <img src="images/arima_residuals.png?raw=true" align="center" width="650" alt="ARIMA residuals">
 
-Plot the predictions:
+* Run the model and plot the predictions:
+
 ```python
 arima_ax = StockModeler.calc_arima_predictions(
-    arima_model, start=start, end=end,
-    df=nflx, ax=axes[0], title='ARIMA'
+    arima_model, 
+    start=start, 
+    end=end,
+    df=nflx, 
+    ax=axes[0], 
+    title='ARIMA'
 )
 plt.show()
 ```
 
 <img src="images/arima_predictions.png?raw=true" align="center" width="450" alt="ARIMA predictions">
 
-#### Linear regression
-Build the model:
+#### Linear regression model
+
+* Build the model:
+
 ```python
 X, Y, lm = StockModeler.create_linear_regression_model(nflx)
 ```
 
-Check the residuals:
+* Plot the residuals:
+
 ```python
 StockModeler.plot_residuals(lm)
 plt.show()
@@ -201,13 +282,21 @@ plt.show()
 
 <img src="images/lm_residuals.png?raw=true" align="center" width="650" alt="linear regression residuals">
 
-Plot the predictions:
+* Run the model and plot the predictions:
+
 ```python
 linear_reg = StockModeler.calc_linear_regression_predictions(
-    lm, start=start, end=end,
-    df=nflx, ax=axes[1], title='Linear Regression'
+    lm, start=start, 
+    end=end,
+    df=nflx, 
+    ax=axes[1], 
+    title='Linear Regression'
 )
 plt.show()
 ```
 
 <img src="images/lm_predictions.png?raw=true" align="center" width="450" alt="linear regression predictions">
+
+## Credits
+
+Check the original repo [here](https://github.com/stefmolin/stock-analysis), this is an improved version of that.
