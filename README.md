@@ -2,7 +2,7 @@
 
 This is pandas-based package intended for automating the technical analysis of a stock, index or a cryptocurrency such as bitcoin. 
 
-## Setup
+## Setting Up
 
 * Clone this repo:
 
@@ -10,11 +10,46 @@ This is pandas-based package intended for automating the technical analysis of a
 $ git clone https://github.com/will-i-amv/stock-analysis.git 
 ```
 
-* Go to the cloned repo's root directory and execute the following commands:
+* Go to the cloned folder's parent directory and create a virtual environment:
 
 ```shell
-$ pip3 install -e stock-analysis # should install requirements.txt packages
-$ pip3 install -r requirements.txt # if not, install them explicitly
+$ python3 -m venv env
+$ source env/bin/activate
+(env)$ 
+```
+
+* Install the package's dependencies:
+
+```shell
+(env)$ pip3 install -r stock-analysis/requirements.txt
+```
+
+* Install the package in editable mode:
+
+```shell
+(env)$ pip3 install -e stock-analysis
+```
+
+## Running from a Jupyter notebook
+
+* Activate the environment
+
+```shell
+$ source env/bin/activate
+(env)$ 
+```
+
+* Run the Tests.ipynb jupyter notebook:
+
+```shell
+(env)$ jupyter lab stock-analysis/Tests.ipynb
+```
+
+* Deactivate the environment when finished
+
+```shell
+(env)$ deactivate
+$ 
 ```
 
 ## Usage
@@ -261,3 +296,7 @@ plt.show()
 ```
 
 <img src="images/lm_predictions.png?raw=true" align="center" width="450" alt="linear regression predictions">
+
+## Credits
+
+Check the original repo [here](https://github.com/stefmolin/stock-analysis), this is an improved version of @stefmolin original work.
