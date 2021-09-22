@@ -4,10 +4,9 @@ setup(
     name='stock_analysis',
     version='0.2',
     description='Classes for technical analysis of stocks.',
-    author='Stefanie Molin',
-    author_email='24376333+stefmolin@users.noreply.github.com',
+    author='William Vera',
     license='MIT',
-    url='https://github.com/stefmolin/stock-analysis',
+    url='https://github.com/will-i-amv/stock-analysis',
     packages=['stock_analysis'],
     install_requires=[
         'matplotlib>=3.0.2',
