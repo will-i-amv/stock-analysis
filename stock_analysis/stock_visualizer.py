@@ -34,27 +34,22 @@ class Visualizer:
         Returns:
             The matplotlib `Axes` object passed in.
         """
-        try:
-            # in case numpy array-like structures are passed -> AB line
-            if x.shape and y.shape:
-                ax.plot(x, y, **kwargs)
-        except:
-            # error triggers if at least one isn't a numpy array-like structure
-            try:
-                if not x and not y:
-                    raise ValueError(
-                        'You must provide an `x` or a `y` at a minimum.'
-                    )
-                elif x and not y:
-                    ax.axvline(x, **kwargs) # Vertical line
-                elif not x and y:
-                    ax.axhline(y, **kwargs) # Horizontal line
-            except:
-                raise ValueError(
-                    'If providing only `x` or `y`, it must be a single value.'
-                )
-        ax.legend()
-        return ax
+        if not x and not y:
+            raise ValueError(
+                'You must provide an `x` or a `y` at a minimum.'
+            )
+        elif x and not y:
+            ax.axvline(x, **kwargs) # Vertical line
+        elif not x and y:
+            ax.axhline(y, **kwargs) # Horizontal line
+        elif x.shape and y.shape:
+            # In case numpy array-like structures are passed -> AB line
+            ax.plot(x, y, **kwargs) 
+        else:
+            raise ValueError(
+                'If providing only `x` or `y`, it must be a single value.'
+            )
+        return ax.legend()
 
     @staticmethod
     def plot_shaded_region(ax, x=tuple(), y=tuple(), **kwargs):
