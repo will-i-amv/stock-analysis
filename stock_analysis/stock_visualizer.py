@@ -92,9 +92,11 @@ class Visualizer:
         Returns:
             The input as a list or tuple.
         """
-        if not isinstance(items, (list, tuple)):
-            items = [items]
-        return items
+        return (
+            [items]
+            if not isinstance(items, (list, tuple)) else
+            items 
+        )
 
     def _window_calc(self, column, periods, name, func, named_arg, **kwargs):
         """
