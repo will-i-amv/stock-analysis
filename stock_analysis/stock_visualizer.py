@@ -188,7 +188,7 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.df.plot.line(y=column, **kwargs)
+        return self.df.plot(kind='line', y=column, **kwargs)
 
     def plot_boxplot(self, **kwargs):
         """
@@ -215,7 +215,7 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.df.plot.hist(y=column, **kwargs)
+        return self.df.plot(kind='hist', y=column, **kwargs)
 
     def plot_candlestick(self, date_range=None, resample=None, volume=False, **kwargs):
         """
