@@ -197,23 +197,23 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        after_hours = self.df.open - self.df.close.shift()
-        monthly_effect = after_hours\
-            .resample('1M')\
-            .sum()
         fig, axes = plt.subplots(1, 2, figsize=(15, 3))
-        after_hours\
+        daily_effect = self.df.open - self.df.close.shift()
+        daily_effect\
             .plot(
                 ax=axes[0],
-                title='After-hours trading\n(Open Price - Prior Day\'s Close)'
-            )\
-            .set_ylabel('price')
+                kind='line',
+                title='After-hours trading - Daily effect'
+            )
+        monthly_effect = daily_effect\
+            .resample('1M')\
+            .sum()
         monthly_effect.index = monthly_effect.index.strftime('%Y-%b')
         monthly_effect\
             .plot(
                 ax=axes[1],
                 kind='bar',
-                title='After-hours trading monthly effect',
+                title='After-hours trading - Monthly effect',
                 color=np.where(monthly_effect >= 0, 'g', 'r'),
                 rot=90
             )\
@@ -222,7 +222,8 @@ class StockVisualizer(Visualizer):
                 color='black', 
                 linewidth=1
             )
-        axes[1].set_ylabel('price')
+        for ax in axes.flatten():
+            ax.set_ylabel('price ($)')
         return axes
 
     @staticmethod
