@@ -695,7 +695,7 @@ class AssetGroupVisualizer(Visualizer):
 
     def plot_pairplot(self, **kwargs):
         """
-        Generate a seaborn plot_pairplot for this asset group.
+        Generate a seaborn pairplot for this asset group.
 
         Parameters:
             - kwargs: Keyword arguments to pass down to `sns.pairplot()`
