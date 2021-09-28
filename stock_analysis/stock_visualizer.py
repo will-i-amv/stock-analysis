@@ -98,13 +98,6 @@ class Visualizer:
             items 
         )
 
-    def _window_calc(self, column, periods, name, func, named_arg, **kwargs):
-        """
-        To be implemented by subclasses. Defines how to add lines resulting
-        from window calculations.
-        """
-        raise NotImplementedError('To be implemented by subclasses.')
-
     def plot_moving_average(self, column, periods, **kwargs):
         """
         Add line(s) for the moving average of a column.
