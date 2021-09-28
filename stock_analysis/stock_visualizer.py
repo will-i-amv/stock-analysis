@@ -242,33 +242,35 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        is_higher = y2 - y1 > 0
         fig = plt.figure(figsize=figsize)
-        for exclude_mask, color, label in zip(
-            (is_higher, np.invert(is_higher)),
-            ('g', 'r'),
-            (label_higher, label_lower)
-        ):
-            plt.fill_between(
-                y2.index, 
-                y2, 
-                y1, 
-                figure=fig,
-                where=exclude_mask, 
-                color=color, 
-                label=label
-            )
-        plt.suptitle(title)
+        is_higher = y2 - y1 > 0
+        zipped = zip(
+            (is_higher, np.invert(is_higher)), # filters
+            ('g', 'r'), # colors
+            (label_higher, label_lower), # labels
+            ('top', 'right'), # spines
+        )
+        for exclude_mask, color, label, spine in zipped:
+            plt\
+                .fill_between(
+                    y2.index, 
+                    y2, 
+                    y1, 
+                    figure=fig,
+                    where=exclude_mask, 
+                    color=color, 
+                    label=label
+                )
+            fig\
+                .axes[0]\
+                .spines[spine]\
+                .set_visible(False)
         plt.legend(
             bbox_to_anchor=(legend_x, -0.1), 
             framealpha=0, 
             ncol=2
         )
-        for spine in ['top', 'right']:
-            fig\
-                .axes[0]\
-                .spines[spine]\
-                .set_visible(False)
+        plt.suptitle(title)
         return fig.axes[0]
 
     def plot_open_to_close(self, figsize=(10, 4)):
