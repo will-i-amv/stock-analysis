@@ -98,52 +98,6 @@ class Visualizer:
             items 
         )
 
-    def plot_moving_average(self, column, periods, **kwargs):
-        """
-        Add line(s) for the moving average of a column.
-
-        Parameters:
-            - column: The name of the column to plot.
-            - periods: The rule or list of rules for resampling,
-                       like '20D' for 20-day periods.
-            - kwargs: Additional arguments to pass down 
-                      to the plotting function.
-
-        Returns:
-            A matplotlib `Axes` object.
-        """
-        return self._window_calc(
-            column, 
-            periods, 
-            name='MA',
-            func=pd.DataFrame.resample, 
-            named_arg='rule', 
-            **kwargs
-        )
-
-    def plot_exp_smoothing(self, column, periods, **kwargs):
-        """
-        Add line(s) for the exponentially smoothed moving average of a column.
-
-        Parameters:
-            - column: The name of the column to plot.
-            - periods: The span or list of spans for smoothing,
-                       like 20 for 20-day periods.
-            - kwargs: Additional arguments to pass down 
-                      to the plotting function.
-
-        Returns:
-            A matplotlib `Axes` object.
-        """
-        return self._window_calc(
-            column, 
-            periods, 
-            name='EWMA',
-            func=pd.DataFrame.ewm, 
-            named_arg='span', 
-            **kwargs
-        )
-
 
 class StockVisualizer(Visualizer):
     """Visualizer for a single stock."""
@@ -465,6 +419,52 @@ class StockVisualizer(Visualizer):
             mask=mask,
             vmin=-1,
             vmax=1
+        )
+
+    def plot_moving_average(self, column, periods, **kwargs):
+        """
+        Add line(s) for the moving average of a column.
+
+        Parameters:
+            - column: The name of the column to plot.
+            - periods: The rule or list of rules for resampling,
+                       like '20D' for 20-day periods.
+            - kwargs: Additional arguments to pass down 
+                      to the plotting function.
+
+        Returns:
+            A matplotlib `Axes` object.
+        """
+        return self._window_calc(
+            column, 
+            periods, 
+            name='MA',
+            func=pd.DataFrame.resample, 
+            named_arg='rule', 
+            **kwargs
+        )
+
+    def plot_exp_smoothing(self, column, periods, **kwargs):
+        """
+        Add line(s) for the exponentially smoothed moving average of a column.
+
+        Parameters:
+            - column: The name of the column to plot.
+            - periods: The span or list of spans for smoothing,
+                       like 20 for 20-day periods.
+            - kwargs: Additional arguments to pass down 
+                      to the plotting function.
+
+        Returns:
+            A matplotlib `Axes` object.
+        """
+        return self._window_calc(
+            column, 
+            periods, 
+            name='EWMA',
+            func=pd.DataFrame.ewm, 
+            named_arg='span', 
+            **kwargs
         )
 
 
