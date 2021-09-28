@@ -151,28 +151,6 @@ class Visualizer:
             **kwargs
         )
 
-    # abstract methods for subclasses to define
-    def plot_evolution_over_time(self, column, **kwargs):
-        """To be implemented by subclasses for generating line plots."""
-        raise NotImplementedError('To be implemented by subclasses.')
-
-    def plot_boxplot(self, **kwargs):
-        """To be implemented by subclasses for generating box plots."""
-        raise NotImplementedError('To be implemented by subclasses.')
-
-    def plot_histogram(self, column, **kwargs):
-        """To be implemented by subclasses for generating histograms."""
-        raise NotImplementedError('To be implemented by subclasses.')
-
-    def plot_after_hours_trades(self):
-        """To be implemented by subclasses for showing the effect 
-        of after-hours trading."""
-        raise NotImplementedError('To be implemented by subclasses.')
-
-    def plot_pairplot(self, **kwargs):
-        """To be implemented by subclasses for generating pairplots."""
-        raise NotImplementedError('To be implemented by subclasses.')
-
 
 class StockVisualizer(Visualizer):
     """Visualizer for a single stock."""
