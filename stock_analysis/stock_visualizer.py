@@ -399,27 +399,21 @@ class StockVisualizer(Visualizer):
         Returns:
             A seaborn heatmap
         """
-        corrs = self.df.pct_change()\
-            .corrwith(
-                other.pct_change()
-            )
-        corrs = corrs[~pd.isnull(corrs)]
-        size = len(corrs)
-        matrix = np.zeros(
-            (size, size), 
-            float
-        )
-        for i, corr in zip(range(size), corrs):
-            matrix[i][i] = corr
-        mask = np.ones_like(matrix) # Create mask to only show diagonal
-        np.fill_diagonal(mask, 0)
+        correlations = self.df.pct_change()\
+            .corrwith(other.pct_change())\
+            .loc[lambda x: x.notnull()]
+        size = len(correlations)
+        correlation_matrix = np.zeros((size, size),  float)
+        mask_matrix = np.ones_like(correlation_matrix) # Create mask to only show diagonal
+        np.fill_diagonal(correlation_matrix, correlations)
+        np.fill_diagonal(mask_matrix, 0)
         return sns.heatmap(
-            matrix,
+            data=correlation_matrix,
             annot=True,
             xticklabels=self.df.columns,
             yticklabels=self.df.columns,
             center=0,
-            mask=mask,
+            mask=mask_matrix,
             vmin=-1,
             vmax=1
         )
