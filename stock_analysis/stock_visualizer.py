@@ -120,6 +120,12 @@ class Visualizer:
             if not isinstance(items, (list, tuple)) else
             items 
         )
+    
+    def validate_periods(self, periods):
+        return list(
+            period if isinstance(period, str) else str(period)
+            for period in self._iter_handler(periods)
+        )
 
 
 class StockVisualizer(Visualizer):
@@ -367,18 +373,17 @@ class StockVisualizer(Visualizer):
             y=column, 
             **kwargs
         )
-        for period in self._iter_handler(periods):
-            validPeriod = \
-                period\
-                if isinstance(period, str) else \
-                str(period)
-            self.df[column]\
-                .pipe(func, **{named_arg: period})\
+        for period in self.validate_periods(periods):
+            self.df.loc[:,column]\
+                .pipe(
+                    func, 
+                    **{named_arg: period}
+                )\
                 .mean()\
                 .plot(
                     ax=ax,
                     linestyle='--',
-                    label=f'{validPeriod + "D"} {name}'
+                    label=f'{period + "D"} {name}'
                 )
         plt.legend()
         return ax
