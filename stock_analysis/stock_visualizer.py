@@ -299,7 +299,7 @@ class StockVisualizer(Visualizer):
         plt.suptitle(title)
         return fig.axes[0]
 
-    def plot_open_to_close(self, figsize=(10, 4)):
+    def plot_between_open_close(self, figsize=(10, 4)):
         """
         Visualize the daily change in price from open to close.
 
@@ -309,17 +309,16 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        ax = self.fill_between(
-            self.df.open, 
-            self.df.close, 
+        ax = self.plot_area_between(
+            y1=self.df.open, 
+            y2=self.df.close, 
             figsize=figsize,
             legend_x=0.67, 
             title='Daily price change (open to close)',
-            label_higher='price rose', 
-            label_lower='price fell'
+            label_higher='Price rose', 
+            label_lower='Price fell'
         )
-        ax.set_ylabel('price')
-        return ax
+        return ax.set_ylabel('price')
 
     def plot_area_between_close_prices(self, other_df, figsize=(10, 4)):
         """
