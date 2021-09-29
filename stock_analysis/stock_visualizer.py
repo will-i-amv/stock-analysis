@@ -8,6 +8,29 @@ import seaborn as sns
 from .utils import validate_df
 
 
+def resample_df(df, resample, agg_dict):
+    """
+    Resample a dataframe and run functions on columns specified in a dict.
+
+    Parameters:
+        - df: DataFrame to be resampled.
+        - resample: The period to use for resampling the data, if desired.
+        - agg_dict: A dictionary that specifies the operations to be done
+                    for each column after resampling.
+    Returns:
+        The resampled dataframe
+    """
+    return df\
+            .resample(resample)\
+            .agg(
+                dict(
+                    (col, agg_dict[col])
+                    for col in df.columns
+                    if col in agg_dict
+                )
+            )
+
+
 class Visualizer:
     """Base visualizer class not intended for direct use."""
     @validate_df(columns={'open', 'high', 'low', 'close'})
@@ -160,33 +183,36 @@ class StockVisualizer(Visualizer):
         Note: `mplfinance.plot()` doesn't return anything. 
               To save your plot, pass in `savefig=file.png`.
         """
-        if not date_range:
-            date_range = slice(
-                self.df.index.min(), 
-                self.df.index.max()
+        def _plot_candlestick(data, volume=False, **kwargs):
+            mpf.plot(
+                data=data, 
+                type='candle', 
+                volume=volume, 
+                **kwargs
             )
-        plot_data = self.df.loc[date_range]
-        if resample:
-            agg_dict = {
-                'open': 'first', 
-                'close': 'last',
-                'high': 'max', 
-                'low': 'min', 
-                'volume': 'sum'
-            }
-            plot_data = plot_data\
-                .resample(resample)\
-                .agg(
-                    dict(
-                        (col, agg_dict[col]) 
-                        for col in plot_data.columns 
-                        if col in agg_dict
-                    )
-                )
-        mpf.plot(
-            plot_data, 
-            type='candle', 
-            volume=volume, 
+        agg_dict = {
+            'open': 'first', 
+            'close': 'last',
+            'high': 'max', 
+            'low': 'min', 
+            'volume': 'sum'
+        }
+        custom_range = slice(
+            self.df.index.min(),
+            self.df.index.max()
+        )
+        plot_data = self.df.loc[
+            custom_range 
+            if not date_range else 
+            date_range
+        ]
+        return _plot_candlestick(
+            data=(
+                resample_df(plot_data, resample, agg_dict)
+                if resample else
+                plot_data
+            ),
+            volume=volume,
             **kwargs
         )
 
