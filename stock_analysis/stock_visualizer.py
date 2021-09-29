@@ -318,9 +318,10 @@ class StockVisualizer(Visualizer):
             label_higher='Price rose', 
             label_lower='Price fell'
         )
-        return ax.set_ylabel('price')
+        ax.set_ylabel('price')
+        return ax
 
-    def plot_area_between_close_prices(self, other_df, figsize=(10, 4)):
+    def plot_between_closes(self, other_df, figsize=(10, 4)):
         """
         Visualize the difference in closing price between assets.
 
@@ -332,13 +333,13 @@ class StockVisualizer(Visualizer):
             A matplotlib `Axes` object.
         """
         ax = self.plot_area_between(
-            other_df.open, 
-            self.df.close, 
+            y1=other_df.close, 
+            y2=self.df.close, 
             figsize=figsize, 
             legend_x=0.7,
             title='Differential between asset closing price (this - other)',
-            label_higher='asset is higher', 
-            label_lower='asset is lower'
+            label_higher='Asset is higher', 
+            label_lower='Asset is lower'
         )
         ax.set_ylabel('price')
         return ax
