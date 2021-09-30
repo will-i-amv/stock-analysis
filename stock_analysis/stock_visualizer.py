@@ -737,15 +737,13 @@ class AssetGroupVisualizer(Visualizer):
         Returns:
             A seaborn heatmap
         """
-        pivot = self.df.pivot_table(
-            values='close', 
-            index=self.df.index, 
-            columns=self.group_by
+        pivot_table = (
+            self.create_pivot_table('close').pct_change()
+            if pct_change else
+            self.create_pivot_table('close')
         )
-        if pct_change:
-            pivot = pivot.pct_change()
         return sns.heatmap(
-            pivot.corr(), 
+            data=pivot_table.corr(), 
             annot=True, 
             center=0, 
             vmin=-1, 
