@@ -567,19 +567,21 @@ class AssetGroupVisualizer(Visualizer):
         Returns:
             The matplotlib `Figure` and `Axes` objects to plot with.
         """
-        subplots_needed = self.df[self.group_by].nunique()
-        rows = math.ceil(subplots_needed / 2)
+        subplot_number = self.df\
+            .loc[:,self.group_by]\
+            .nunique()
+        row_number = math.ceil(subplot_number / 2)
         fig, axes = plt.subplots(
-            rows, 
-            2, 
-            figsize=(15, 5 * rows)
+            nrows=row_number, 
+            ncols=2, 
+            figsize=(15, 5 * row_number)
         )
-        if rows > 1:
+        if row_number > 1:
             axes = axes.flatten()
-        if subplots_needed < len(axes):
-            # remove excess axes from autolayout
-            for i in range(subplots_needed, len(axes)):
-                fig.delaxes(axes[i]) # Can't use list comprehension here
+        if subplot_number < len(axes):
+            # Remove excess axes from autolayout
+            for i in range(subplot_number, len(axes)):
+                fig.delaxes(axes[i]) 
         return fig, axes
 
     def plot_histogram(self, column, **kwargs):
