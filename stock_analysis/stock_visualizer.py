@@ -701,6 +701,13 @@ class AssetGroupVisualizer(Visualizer):
         plt.tight_layout()
         return axes
 
+    def create_pivot_table(self, column):
+        return self.df.pivot_table(
+            values=column, 
+            index=self.df.index, 
+            columns=self.group_by
+        )
+
     def plot_pairplot(self, **kwargs):
         """
         Generate a seaborn pairplot for this asset group.
@@ -712,11 +719,7 @@ class AssetGroupVisualizer(Visualizer):
             A seaborn pairplot
         """
         return sns.pairplot(
-            self.df.pivot_table(
-                values='close', 
-                index=self.df.index, 
-                columns=self.group_by
-            ),
+            data=self.create_pivot_table('close'),
             diag_kind='kde',
             **kwargs
         )
