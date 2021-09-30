@@ -229,18 +229,27 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        fig, axes = plt.subplots(1, 2, figsize=(15, 3))
+        agg_dict = {
+            'open': 'sum', 
+            'close': 'sum',
+            'high': 'sum', 
+            'low': 'sum', 
+            'volume': 'sum'
+        }
         daily_effect = self.df.open - self.df.close.shift()
+        monthly_effect = resample_df(
+            df=daily_effect, 
+            resample='1M', 
+            agg_dict=agg_dict
+        )
+        monthly_effect.index = monthly_effect.index.strftime('%Y-%b') # Mutate in-place
+        fig, axes = plt.subplots(1, 2, figsize=(15, 3))
         daily_effect\
             .plot(
                 ax=axes[0],
                 kind='line',
                 title='After-hours trading - Daily effect'
             )
-        monthly_effect = daily_effect\
-            .resample('1M')\
-            .sum()
-        monthly_effect.index = monthly_effect.index.strftime('%Y-%b')
         monthly_effect\
             .plot(
                 ax=axes[1],
