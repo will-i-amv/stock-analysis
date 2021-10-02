@@ -134,9 +134,27 @@ class Visualizer:
             items 
         )
     
+    @staticmethod
+    def _string_handler(item):
+        """
+        Static method for making a string out of an item if isn't it
+        already.
+
+        Parameters:
+            - item: The variable to make sure it is a string.
+
+        Returns:
+            The input as a string.
+        """
+        return (
+            str(item) 
+            if not isinstance(item, str) else 
+            item
+        )
+
     def validate_periods(self, periods):
         return list(
-            period if isinstance(period, str) else str(period)
+            self._string_handler(period)
             for period in self._iter_handler(periods)
         )
 
