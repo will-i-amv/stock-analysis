@@ -236,13 +236,14 @@ class StockVisualizer(Visualizer):
             'low': 'sum', 
             'volume': 'sum'
         }
-        daily_effect = self.df.open - self.df.close.shift()
-        monthly_effect = resample_df(
-            df=daily_effect, 
+        monthly_df = resample_df(
+            df=self.df, 
             resample='1M', 
             agg_dict=agg_dict
         )
-        monthly_effect.index = monthly_effect.index.strftime('%Y-%b') # Mutate in-place
+        monthly_df.index = monthly_df.index.strftime('%Y-%b') # Mutate in-place
+        daily_effect = self.df.open - self.df.close.shift()
+        monthly_effect = monthly_df.open - monthly_df.close.shift()        
         fig, axes = plt.subplots(1, 2, figsize=(15, 3))
         daily_effect\
             .plot(
