@@ -12,6 +12,15 @@ def calc_diff(df, column1='open', column2='close'):
     return df[column1] - df[column2].shift()
 
 
+def calc_moving_average(series, func, named_arg, period):
+    return series\
+        .pipe(
+            func=func, 
+            **{named_arg: period}
+        )\
+        .mean()
+
+
 def resample_df(df, resample, agg_dict):
     """
     Resample a dataframe and run functions on columns specified in a dict.
@@ -388,17 +397,17 @@ class StockVisualizer(Visualizer):
             **kwargs
         )
         for period in self.validate_periods(periods):
-            self.df.loc[:,column]\
-                .pipe(
-                    func, 
-                    **{named_arg: period}
-                )\
-                .mean()\
-                .plot(
-                    ax=ax,
-                    linestyle='--',
-                    label=f'{period + "D"} {name}'
-                )
+            series = calc_moving_average(
+                self.df.loc[:,column], 
+                func, 
+                named_arg, 
+                period
+            )
+            series.plot(
+                ax=ax,
+                linestyle='--',
+                label=f'{period + "D"} {name}'
+            )
         plt.legend()
         return ax
 
