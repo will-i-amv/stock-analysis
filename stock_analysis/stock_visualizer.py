@@ -8,6 +8,10 @@ import seaborn as sns
 from .utils import validate_df
 
 
+def calc_diff(df, column1='open', column2='close'):
+    return df[column1] - df[column2].shift()
+
+
 def resample_df(df, resample, agg_dict):
     """
     Resample a dataframe and run functions on columns specified in a dict.
@@ -221,7 +225,7 @@ class StockVisualizer(Visualizer):
             volume=volume,
             **kwargs
         )
-
+    
     def plot_after_hours_trades(self):
         """
         Visualize the effect of after-hours trading on this asset.
@@ -242,8 +246,8 @@ class StockVisualizer(Visualizer):
             agg_dict=agg_dict
         )
         monthly_df.index = monthly_df.index.strftime('%Y-%b') # Mutate in-place
-        daily_effect = self.df.open - self.df.close.shift()
-        monthly_effect = monthly_df.open - monthly_df.close.shift()        
+        daily_effect = calc_diff(self.df)
+        monthly_effect = calc_diff(monthly_df)
         fig, axes = plt.subplots(1, 2, figsize=(15, 3))
         daily_effect\
             .plot(
