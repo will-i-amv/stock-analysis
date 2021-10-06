@@ -185,7 +185,7 @@ class StockVisualizer(Visualizer):
         )
         return ax
 
-    def plot_boxplot(self, **kwargs):
+    def plot_boxplot(self, column, **kwargs):
         """
         Generate box plots for all columns.
 
@@ -196,7 +196,11 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.df.plot(kind='box', **kwargs)
+        return sns.boxplot(
+            data=self.df,
+            y=column,
+            **kwargs
+        )
 
     def plot_histogram(self, column, **kwargs):
         """
