@@ -161,7 +161,7 @@ class Visualizer:
 
 class StockVisualizer(Visualizer):
     """Visualizer for a single stock."""
-    def plot_evolution_over_time(self, column, **kwargs):
+    def plot_curve(self, column, **kwargs):
         """
         Visualize the evolution over time of a column.
 
@@ -173,7 +173,17 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.df.plot(kind='line', y=column, **kwargs)
+        ax = sns.lineplot(
+            data=self.df,
+            x=self.df.index,
+            y=self.df[column], 
+            **kwargs
+        )
+        ax.set_xticklabels(
+            labels=self.df.index.strftime('%Y-%b'),
+            rotation=45,
+        )
+        return ax
 
     def plot_boxplot(self, **kwargs):
         """
@@ -544,7 +554,7 @@ class AssetGroupVisualizer(Visualizer):
         super().__init__(df)
         self.group_by = group_by
 
-    def plot_evolution_over_time(self, column, **kwargs):
+    def plot_curve(self, column, **kwargs):
         """
         Visualize the evolution over time of a column for all assets in group.
 

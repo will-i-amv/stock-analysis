@@ -116,7 +116,7 @@ from stock_analysis import StockVisualizer
 
 netflix_viz = StockVisualizer(nflx)
 
-ax = netflix_viz.plot_evolution_over_time(
+ax = netflix_viz.plot_curve(
     'close',
     figsize=(10, 4),
     legend=False,
