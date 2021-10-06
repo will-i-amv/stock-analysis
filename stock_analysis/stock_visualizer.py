@@ -214,7 +214,11 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.df.plot(kind='hist', y=column, **kwargs)
+        #return self.df.plot(kind='hist', y=column, **kwargs)
+        return sns.histplot(
+            y=self.df[column], 
+            **kwargs
+        )
 
     def plot_candlestick(self, date_range=None, resample=None, volume=False, **kwargs):
         """
