@@ -44,6 +44,11 @@ def resample_df(df, resample, agg_dict):
             )
 
 
+def resample_series(data, period):
+    return data\
+            .resample(period)\
+            .sum()
+
 class Visualizer:
     """Base visualizer class not intended for direct use."""
     @validate_df(columns={'open', 'high', 'low', 'close'})
@@ -278,43 +283,29 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        agg_dict = {
-            'open': 'sum', 
-            'close': 'sum',
-            'high': 'sum', 
-            'low': 'sum', 
-            'volume': 'sum'
-        }
-        monthly_df = resample_df(
-            df=self.df, 
-            resample='1M', 
-            agg_dict=agg_dict
-        )
-        monthly_df.index = monthly_df.index.strftime('%Y-%b') # Mutate in-place
         daily_effect = calc_diff(self.df)
-        monthly_effect = calc_diff(monthly_df)
-        fig, axes = plt.subplots(1, 2, figsize=(15, 3))
-        daily_effect\
-            .plot(
-                ax=axes[0],
-                kind='line',
-                title='After-hours trading - Daily effect'
+        monthly_effect = resample_series(
+            data=daily_effect, 
+            period='1M', 
+        )
+        _, axes = plt.subplots(1, 2, figsize=(15, 3))
+        for i, series in enumerate([daily_effect, monthly_effect]):
+            axes[i] = sns.lineplot(
+                x=series.index,
+                y=series,
+                ax=axes[i],
             )
-        monthly_effect\
-            .plot(
-                ax=axes[1],
-                kind='bar',
-                title='After-hours trading - Monthly effect',
-                color=np.where(monthly_effect >= 0, 'g', 'r'),
-                rot=90
-            )\
-            .axhline(
+            axes[i].axhline(
                 0, 
                 color='black', 
                 linewidth=1
+            )    
+            axes[i].set_xlabel('Date')
+            axes[i].set_ylabel('price ($)')
+            axes[i].set_xticklabels(
+                labels=series.index.strftime('%Y-%b'),
+                rotation=45,
             )
-        for ax in axes.flatten():
-            ax.set_ylabel('price ($)')
         return axes
 
     @staticmethod
