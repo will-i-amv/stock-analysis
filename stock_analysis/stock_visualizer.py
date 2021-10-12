@@ -400,18 +400,17 @@ class StockVisualizer(Visualizer):
         ax.set_ylabel('price')
         return ax
 
-    def _window_calc(self, column, periods, name, func, named_arg, **kwargs):
+    def plot_curves(self, ax, column, periods, func, named_arg, **kwargs):
         """
-        Helper method for plotting a series and adding reference lines using
-        a window calculation.
+        Helper method for plotting moving averages for different periods.
 
         Parameters:
+            - ax: The matplotlib `Axes` object to add the curves to.
             - column: The name of the column to plot.
             - periods: The rule/span or list of them to pass to the
                        resampling/smoothing function, like '20D' 
                        for 20-day periods
                        (for resampling) or 20 for a 20-day span (smoothing)
-            - name: The name of the window calculation (to show in the legend).
             - func: The window calculation function.
             - named_arg: The name of the argument `periods` is being passed as.
             - kwargs: Additional arguments to pass down to the plotting function.
@@ -419,23 +418,26 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        ax = self.df.plot(
-            y=column, 
-            **kwargs
-        )
-        for period in self.validate_periods(periods):
-            series = calc_moving_average(
-                self.df.loc[:,column], 
-                func, 
-                named_arg, 
+        valid_name = 'MA' if named_arg == 'rule' else 'EWMA'
+        for period in periods:
+            valid_period = (
+                int(period.strip('D'))
+                if valid_name == 'EWMA' else
                 period
             )
-            series.plot(
+            series = calc_moving_average(
+                series=self.df.loc[:,column], 
+                func=func, 
+                named_arg=named_arg, 
+                period=valid_period,
+            )
+            ax = sns.lineplot(
+                data=series,
                 ax=ax,
                 linestyle='--',
-                label=f'{period + "D"} {name}'
+                label=f'{period} {valid_name}',
+                **kwargs
             )
-        plt.legend()
         return ax
 
     def plot_pairplot(self, **kwargs):
@@ -499,11 +501,12 @@ class StockVisualizer(Visualizer):
             vmax=1
         )
 
-    def plot_moving_average(self, column, periods, **kwargs):
+    def plot_moving_average(self, ax, column, periods, **kwargs):
         """
-        Add line(s) for the moving average of a column.
+        Add curve(s) for the moving average of a column.
 
         Parameters:
+            - ax: The matplotlib `Axes` object to add the curves to.
             - column: The name of the column to plot.
             - periods: The rule or list of rules for resampling,
                        like '20D' for 20-day periods.
@@ -513,20 +516,21 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        return self._window_calc(
-            column, 
-            periods, 
-            name='MA',
+        return self.plot_curves(
+            column=column, 
+            periods=periods,
+            ax=ax,
             func=pd.DataFrame.resample, 
             named_arg='rule', 
             **kwargs
         )
 
-    def plot_exp_smoothing(self, column, periods, **kwargs):
+    def plot_exp_smoothing(self, ax, column, periods, **kwargs):
         """
-        Add line(s) for the exponentially smoothed moving average of a column.
+        Add curve(s) for the exponentially smoothed moving average of a column.
 
         Parameters:
+            - ax: The matplotlib `Axes` object to add the curves to.
             - column: The name of the column to plot.
             - periods: The span or list of spans for smoothing,
                        like 20 for 20-day periods.
@@ -536,10 +540,10 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        return self._window_calc(
-            column, 
-            periods, 
-            name='EWMA',
+        return self.plot_curves(
+            column=column, 
+            periods=periods, 
+            ax=ax,
             func=pd.DataFrame.ewm, 
             named_arg='span', 
             **kwargs
