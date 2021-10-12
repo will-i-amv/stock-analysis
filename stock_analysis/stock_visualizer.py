@@ -225,6 +225,67 @@ class StockVisualizer(Visualizer):
             **kwargs
         )
 
+    def plot_pairplot(self, **kwargs):
+        """
+        Generate a seaborn pairplot for this asset.
+
+        Parameters:
+            - kwargs: Keyword arguments to pass down to `sns.pairplot()`
+
+        Returns:
+            A seaborn pairplot
+        """
+        return sns.pairplot(self.df, **kwargs)
+
+    def plot_jointplot(self, other, column, **kwargs):
+        """
+        Generate a seaborn jointplot for given column in asset compared to
+        another asset.
+
+        Parameters:
+            - other: The other asset's dataframe
+            - column: The column name to use for the comparison.
+            - kwargs: Keyword arguments to pass down to `sns.jointplot()`
+
+        Returns:
+            A seaborn jointplot
+        """
+        return sns.jointplot(
+            x=self.df[column],
+            y=other[column],
+            **kwargs
+        )
+
+    def plot_correlation_heatmap(self, other):
+        """
+        Plot the correlations between this asset and
+        another one with a heatmap.
+
+        Parameters:
+            - other: The other dataframe.
+
+        Returns:
+            A seaborn heatmap
+        """
+        correlations = self.df.pct_change()\
+            .corrwith(other.pct_change())\
+            .loc[lambda x: x.notnull()]
+        size = len(correlations)
+        correlation_matrix = np.zeros((size, size),  float)
+        mask_matrix = np.ones_like(correlation_matrix) # Create mask to only show diagonal
+        np.fill_diagonal(correlation_matrix, correlations)
+        np.fill_diagonal(mask_matrix, 0)
+        return sns.heatmap(
+            data=correlation_matrix,
+            annot=True,
+            xticklabels=self.df.columns,
+            yticklabels=self.df.columns,
+            center=0,
+            mask=mask_matrix,
+            vmin=-1,
+            vmax=1
+        )
+
     def plot_candlestick(self, date_range=None, resample=None, volume=False, **kwargs):
         """
         Create a candlestick plot for the OHLC data with optional aggregation,
@@ -275,7 +336,7 @@ class StockVisualizer(Visualizer):
             volume=volume,
             **kwargs
         )
-    
+
     def plot_after_hours_trades(self):
         """
         Visualize the effect of after-hours trading on this asset.
@@ -433,67 +494,6 @@ class StockVisualizer(Visualizer):
                 **kwargs
             )
         return ax
-
-    def plot_pairplot(self, **kwargs):
-        """
-        Generate a seaborn pairplot for this asset.
-
-        Parameters:
-            - kwargs: Keyword arguments to pass down to `sns.pairplot()`
-
-        Returns:
-            A seaborn pairplot
-        """
-        return sns.pairplot(self.df, **kwargs)
-
-    def plot_jointplot(self, other, column, **kwargs):
-        """
-        Generate a seaborn jointplot for given column in asset compared to
-        another asset.
-
-        Parameters:
-            - other: The other asset's dataframe
-            - column: The column name to use for the comparison.
-            - kwargs: Keyword arguments to pass down to `sns.jointplot()`
-
-        Returns:
-            A seaborn jointplot
-        """
-        return sns.jointplot(
-            x=self.df[column],
-            y=other[column],
-            **kwargs
-        )
-
-    def plot_correlation_heatmap(self, other):
-        """
-        Plot the correlations between this asset and
-        another one with a heatmap.
-
-        Parameters:
-            - other: The other dataframe.
-
-        Returns:
-            A seaborn heatmap
-        """
-        correlations = self.df.pct_change()\
-            .corrwith(other.pct_change())\
-            .loc[lambda x: x.notnull()]
-        size = len(correlations)
-        correlation_matrix = np.zeros((size, size),  float)
-        mask_matrix = np.ones_like(correlation_matrix) # Create mask to only show diagonal
-        np.fill_diagonal(correlation_matrix, correlations)
-        np.fill_diagonal(mask_matrix, 0)
-        return sns.heatmap(
-            data=correlation_matrix,
-            annot=True,
-            xticklabels=self.df.columns,
-            yticklabels=self.df.columns,
-            center=0,
-            mask=mask_matrix,
-            vmin=-1,
-            vmax=1
-        )
 
     def plot_moving_average(self, ax, column, periods, **kwargs):
         """
