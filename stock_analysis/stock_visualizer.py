@@ -50,12 +50,7 @@ def resample_series(data, period):
             .sum()
 
 class Visualizer:
-    """Base visualizer class not intended for direct use."""
-    @validate_df(columns={'open', 'high', 'low', 'close'})
-    def __init__(self, df):
-        """Visualizer has a `pandas.DataFrame` object as an attribute."""
-        self.df = df
-
+    """Class with utility methods"""
     @staticmethod
     def plot_reference_line(ax, x=None, y=None, **kwargs):
         """
@@ -164,8 +159,12 @@ class Visualizer:
         )
 
 
-class StockVisualizer(Visualizer):
-    """Visualizer for a single stock."""
+class StockVisualizer:
+    """Class for visualizing a single asset."""
+    @validate_df(columns={'open', 'high', 'low', 'close'})
+    def __init__(self, df):
+        self.df = df
+
     def plot_curve(self, column, **kwargs):
         """
         Visualize the evolution over time of a column.
@@ -546,11 +545,11 @@ class StockVisualizer(Visualizer):
         )
 
 
-class AssetGroupVisualizer(Visualizer):
+class AssetGroupVisualizer:
     """Class for visualizing groups of assets in a single dataframe."""
+    @validate_df(columns={'open', 'high', 'low', 'close'})
     def __init__(self, df, group_by='name'):
-        """This object also keeps track of which column it needs to group by."""
-        super().__init__(df)
+        self.df = df
         self.group_by = group_by
 
     def plot_curve(self, column, **kwargs):
