@@ -330,23 +330,17 @@ class StockVisualizer(Visualizer):
             (is_higher, np.invert(is_higher)), # filters
             ('g', 'r'), # colors
             (label_higher, label_lower), # labels
-            ('top', 'right'), # spines
         )
-        for exclude_mask, color, label, spine in zipped:
-            plt\
-                .fill_between(
-                    y2.index, 
-                    y2, 
-                    y1, 
-                    figure=fig,
-                    where=exclude_mask, 
-                    color=color, 
-                    label=label
-                )
-            fig\
-                .axes[0]\
-                .spines[spine]\
-                .set_visible(False)
+        for exclude_mask, color, label in zipped:
+            plt.fill_between(
+                x=y2.index, 
+                y1=y1, 
+                y2=y2, 
+                figure=fig,
+                where=exclude_mask, 
+                color=color, 
+                label=label
+            )
         plt.legend(
             bbox_to_anchor=(legend_x, -0.1), 
             framealpha=0, 
