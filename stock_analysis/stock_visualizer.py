@@ -219,7 +219,6 @@ class StockVisualizer(Visualizer):
         Returns:
             A matplotlib `Axes` object.
         """
-        #return self.df.plot(kind='hist', y=column, **kwargs)
         return sns.histplot(
             y=self.df[column], 
             **kwargs
@@ -235,7 +234,10 @@ class StockVisualizer(Visualizer):
         Returns:
             A seaborn pairplot
         """
-        return sns.pairplot(self.df, **kwargs)
+        return sns.pairplot(
+            data=self.df, 
+            **kwargs
+        )
 
     def plot_jointplot(self, other, column, **kwargs):
         """
