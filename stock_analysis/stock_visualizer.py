@@ -8,6 +8,10 @@ import seaborn as sns
 from .utils import validate_df
 
 
+def calc_correlation(df1, df2):
+    return df1.corrwith(df2).loc[lambda x: x.notnull()]
+
+
 def calc_diff(df, column1='open', column2='close'):
     return df[column1] - df[column2].shift()
 
@@ -360,16 +364,17 @@ class StockVisualizer:
         Returns:
             A seaborn heatmap
         """
-        correlations = self.df.pct_change()\
-            .corrwith(other.pct_change())\
-            .loc[lambda x: x.notnull()]
+        correlations = calc_correlation(
+            df1=self.df.pct_change(),
+            df2=other.pct_change(),
+        )
         size = len(correlations)
-        correlation_matrix = np.zeros((size, size),  float)
-        mask_matrix = np.ones_like(correlation_matrix) # Create mask to only show diagonal
-        np.fill_diagonal(correlation_matrix, correlations)
+        corr_matrix = np.zeros((size, size),  float)
+        mask_matrix = np.ones_like(corr_matrix) # Create mask to only show diagonal
+        np.fill_diagonal(corr_matrix, correlations)
         np.fill_diagonal(mask_matrix, 0)
         return sns.heatmap(
-            data=correlation_matrix,
+            data=corr_matrix,
             annot=True,
             xticklabels=self.df.columns,
             yticklabels=self.df.columns,
