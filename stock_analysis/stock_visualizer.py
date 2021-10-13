@@ -168,65 +168,70 @@ class StockVisualizer:
     def __init__(self, df):
         self.df = df
 
-    def plot_curve(self, column, **kwargs):
+    @staticmethod
+    def plot_curve(df, column, **kwargs):
         """
         Visualize the evolution over time of a column.
 
         Parameters:
             - column: The name of the column to visualize.
             - kwargs: Additional keyword arguments to pass down
-                      to the plotting function.
+                        to the plotting function.
 
         Returns:
             A matplotlib `Axes` object.
         """
         ax = sns.lineplot(
-            data=self.df,
-            x=self.df.index,
-            y=self.df[column], 
+            data=df,
+            x=df.index,
+            y=df.loc[:,column], 
             **kwargs
         )
         ax.set_xticklabels(
-            labels=self.df.index.strftime('%Y-%b'),
+            labels=df.index.strftime('%Y-%b'),
             rotation=45,
         )
         return ax
 
-    def plot_boxplot(self, column, **kwargs):
+    @staticmethod
+    def plot_boxplot(df, column, **kwargs):
         """
         Generate box plots for all columns.
 
         Parameters:
             - kwargs: Additional keyword arguments to pass down
-                      to the plotting function.
+                        to the plotting function.
 
         Returns:
             A matplotlib `Axes` object.
         """
         return sns.boxplot(
-            data=self.df,
-            y=column,
+            data=df,
+            y=df.loc[:,column],
             **kwargs
         )
 
-    def plot_histogram(self, column, **kwargs):
+    @staticmethod
+    def plot_histogram(df, column, **kwargs):
         """
         Generate the histogram of a given column.
 
         Parameters:
             - column: The name of the column to visualize.
             - kwargs: Additional keyword arguments to pass down
-                      to the plotting function.
+                        to the plotting function.
 
         Returns:
             A matplotlib `Axes` object.
         """
         return sns.histplot(
-            y=self.df[column], 
+            data=df,
+            x=df.loc[:,column], 
             **kwargs
         )
 
-    def plot_pairplot(self, **kwargs):
+    @staticmethod
+    def plot_pairplot(df, **kwargs):
         """
         Generate a seaborn pairplot for this asset.
 
@@ -237,11 +242,12 @@ class StockVisualizer:
             A seaborn pairplot
         """
         return sns.pairplot(
-            data=self.df, 
+            data=df, 
             **kwargs
         )
 
-    def plot_jointplot(self, other, column, **kwargs):
+    @staticmethod
+    def plot_jointplot(df1, df2, column, **kwargs):
         """
         Generate a seaborn jointplot for given column in asset compared to
         another asset.
@@ -255,8 +261,8 @@ class StockVisualizer:
             A seaborn jointplot
         """
         return sns.jointplot(
-            x=self.df[column],
-            y=other[column],
+            x=df1.loc[:,column],
+            y=df2.loc[:,column],
             **kwargs
         )
 
@@ -459,7 +465,8 @@ class StockVisualizer:
         ax.set_ylabel('price')
         return ax
 
-    def plot_curves(self, ax, column, periods, func, named_arg, **kwargs):
+    @staticmethod
+    def plot_curves(series, ax, periods, func, named_arg, **kwargs):
         """
         Helper method for plotting moving averages for different periods.
 
@@ -467,9 +474,9 @@ class StockVisualizer:
             - ax: The matplotlib `Axes` object to add the curves to.
             - column: The name of the column to plot.
             - periods: The rule/span or list of them to pass to the
-                       resampling/smoothing function, like '20D' 
-                       for 20-day periods
-                       (for resampling) or 20 for a 20-day span (smoothing)
+                        resampling/smoothing function, like '20D' 
+                        for 20-day periods
+                        (for resampling) or 20 for a 20-day span (smoothing)
             - func: The window calculation function.
             - named_arg: The name of the argument `periods` is being passed as.
             - kwargs: Additional arguments to pass down to the plotting function.
@@ -485,7 +492,7 @@ class StockVisualizer:
                 period
             )
             series = calc_moving_average(
-                series=self.df.loc[:,column], 
+                series=series, 
                 func=func, 
                 named_arg=named_arg, 
                 period=valid_period,
@@ -507,15 +514,15 @@ class StockVisualizer:
             - ax: The matplotlib `Axes` object to add the curves to.
             - column: The name of the column to plot.
             - periods: The rule or list of rules for resampling,
-                       like '20D' for 20-day periods.
+                        like '20D' for 20-day periods.
             - kwargs: Additional arguments to pass down 
-                      to the plotting function.
+                        to the plotting function.
 
         Returns:
             A matplotlib `Axes` object.
         """
         return self.plot_curves(
-            column=column, 
+            series=self.df.loc[:,column], 
             periods=periods,
             ax=ax,
             func=pd.DataFrame.resample, 
@@ -531,15 +538,15 @@ class StockVisualizer:
             - ax: The matplotlib `Axes` object to add the curves to.
             - column: The name of the column to plot.
             - periods: The span or list of spans for smoothing,
-                       like 20 for 20-day periods.
+                        like 20 for 20-day periods.
             - kwargs: Additional arguments to pass down 
-                      to the plotting function.
+                        to the plotting function.
 
         Returns:
             A matplotlib `Axes` object.
         """
         return self.plot_curves(
-            column=column, 
+            series=self.df.loc[:,column], 
             periods=periods, 
             ax=ax,
             func=pd.DataFrame.ewm, 
