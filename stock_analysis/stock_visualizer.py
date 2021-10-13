@@ -161,13 +161,6 @@ class Visualizer:
             ax.axhspan(*y, **kwargs) # Horizontal span
         return ax
 
-
-class StockVisualizer:
-    """Class for visualizing a single asset."""
-    @validate_df(columns={'open', 'high', 'low', 'close'})
-    def __init__(self, df):
-        self.df = df
-
     @staticmethod
     def plot_curve(df, column, **kwargs):
         """
@@ -191,6 +184,47 @@ class StockVisualizer:
             labels=df.index.strftime('%Y-%b'),
             rotation=45,
         )
+        return ax
+
+    @staticmethod
+    def plot_curves(series, ax, periods, func, named_arg, **kwargs):
+        """
+        Helper method for plotting moving averages for different periods.
+
+        Parameters:
+            - ax: The matplotlib `Axes` object to add the curves to.
+            - column: The name of the column to plot.
+            - periods: The rule/span or list of them to pass to the
+                        resampling/smoothing function, like '20D' 
+                        for 20-day periods
+                        (for resampling) or 20 for a 20-day span (smoothing)
+            - func: The window calculation function.
+            - named_arg: The name of the argument `periods` is being passed as.
+            - kwargs: Additional arguments to pass down to the plotting function.
+
+        Returns:
+            A matplotlib `Axes` object.
+        """
+        valid_name = 'MA' if named_arg == 'rule' else 'EWMA'
+        for period in periods:
+            valid_period = (
+                int(period.strip('D'))
+                if valid_name == 'EWMA' else
+                period
+            )
+            series = calc_moving_average(
+                series=series, 
+                func=func, 
+                named_arg=named_arg, 
+                period=valid_period,
+            )
+            ax = sns.lineplot(
+                data=series,
+                ax=ax,
+                linestyle='--',
+                label=f'{period} {valid_name}',
+                **kwargs
+            )
         return ax
 
     @staticmethod
@@ -265,6 +299,55 @@ class StockVisualizer:
             y=df2.loc[:,column],
             **kwargs
         )
+
+    @staticmethod
+    def plot_area_between(y1, y2, title, label_higher, label_lower, figsize, legend_x):
+        """
+        Visualize the difference between assets.
+
+        Parameters:
+            - y1, y2: Data to be plotted with fill between y2 - y1.
+            - title: The title for the plot.
+            - label_higher: String label for when y2 is higher than y1.
+            - label_lower: String label for when y2 is lower than y1.
+            - figsize: A tuple of (width, height) for the plot dimensions.
+            - legend_x: Where to place the legend below the plot.
+
+        Returns:
+            A matplotlib `Axes` object.
+        """
+        fig = plt.figure(figsize=figsize)
+        is_higher = y2 - y1 > 0
+        zipped = zip(
+            (is_higher, np.invert(is_higher)), # filters
+            ('g', 'r'), # colors
+            (label_higher, label_lower), # labels
+        )
+        for exclude_mask, color, label in zipped:
+            plt.fill_between(
+                x=y2.index, 
+                y1=y1, 
+                y2=y2, 
+                figure=fig,
+                where=exclude_mask, 
+                color=color, 
+                label=label
+            )
+        plt.legend(
+            bbox_to_anchor=(legend_x, -0.1), 
+            framealpha=0, 
+            ncol=2
+        )
+        plt.suptitle(title)
+        return fig.axes[0]
+
+
+class StockVisualizer:
+    """Class for visualizing a single asset."""
+    @validate_df(columns={'open', 'high', 'low', 'close'})
+    def __init__(self, df):
+        self.df = df
+        self.viz = Visualizer()
 
     def plot_correlation_heatmap(self, other):
         """
@@ -379,47 +462,6 @@ class StockVisualizer:
             )
         return axes
 
-    @staticmethod
-    def plot_area_between(y1, y2, title, label_higher, label_lower, figsize, legend_x):
-        """
-        Visualize the difference between assets.
-
-        Parameters:
-            - y1, y2: Data to be plotted with fill between y2 - y1.
-            - title: The title for the plot.
-            - label_higher: String label for when y2 is higher than y1.
-            - label_lower: String label for when y2 is lower than y1.
-            - figsize: A tuple of (width, height) for the plot dimensions.
-            - legend_x: Where to place the legend below the plot.
-
-        Returns:
-            A matplotlib `Axes` object.
-        """
-        fig = plt.figure(figsize=figsize)
-        is_higher = y2 - y1 > 0
-        zipped = zip(
-            (is_higher, np.invert(is_higher)), # filters
-            ('g', 'r'), # colors
-            (label_higher, label_lower), # labels
-        )
-        for exclude_mask, color, label in zipped:
-            plt.fill_between(
-                x=y2.index, 
-                y1=y1, 
-                y2=y2, 
-                figure=fig,
-                where=exclude_mask, 
-                color=color, 
-                label=label
-            )
-        plt.legend(
-            bbox_to_anchor=(legend_x, -0.1), 
-            framealpha=0, 
-            ncol=2
-        )
-        plt.suptitle(title)
-        return fig.axes[0]
-
     def plot_between_open_close(self, figsize=(10, 4)):
         """
         Visualize the daily change in price from open to close.
@@ -430,7 +472,7 @@ class StockVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        ax = self.plot_area_between(
+        ax = self.viz.plot_area_between(
             y1=self.df.open, 
             y2=self.df.close, 
             figsize=figsize,
@@ -453,7 +495,7 @@ class StockVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        ax = self.plot_area_between(
+        ax = self.viz.plot_area_between(
             y1=other_df.close, 
             y2=self.df.close, 
             figsize=figsize, 
@@ -463,47 +505,6 @@ class StockVisualizer:
             label_lower='Asset is lower'
         )
         ax.set_ylabel('price')
-        return ax
-
-    @staticmethod
-    def plot_curves(series, ax, periods, func, named_arg, **kwargs):
-        """
-        Helper method for plotting moving averages for different periods.
-
-        Parameters:
-            - ax: The matplotlib `Axes` object to add the curves to.
-            - column: The name of the column to plot.
-            - periods: The rule/span or list of them to pass to the
-                        resampling/smoothing function, like '20D' 
-                        for 20-day periods
-                        (for resampling) or 20 for a 20-day span (smoothing)
-            - func: The window calculation function.
-            - named_arg: The name of the argument `periods` is being passed as.
-            - kwargs: Additional arguments to pass down to the plotting function.
-
-        Returns:
-            A matplotlib `Axes` object.
-        """
-        valid_name = 'MA' if named_arg == 'rule' else 'EWMA'
-        for period in periods:
-            valid_period = (
-                int(period.strip('D'))
-                if valid_name == 'EWMA' else
-                period
-            )
-            series = calc_moving_average(
-                series=series, 
-                func=func, 
-                named_arg=named_arg, 
-                period=valid_period,
-            )
-            ax = sns.lineplot(
-                data=series,
-                ax=ax,
-                linestyle='--',
-                label=f'{period} {valid_name}',
-                **kwargs
-            )
         return ax
 
     def plot_moving_average(self, ax, column, periods, **kwargs):
@@ -521,7 +522,7 @@ class StockVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.plot_curves(
+        return self.viz.plot_curves(
             series=self.df.loc[:,column], 
             periods=periods,
             ax=ax,
@@ -545,7 +546,7 @@ class StockVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.plot_curves(
+        return self.viz.plot_curves(
             series=self.df.loc[:,column], 
             periods=periods, 
             ax=ax,
