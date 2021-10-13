@@ -49,6 +49,50 @@ def resample_series(data, period):
             .resample(period)\
             .sum()
 
+
+def _iter_handler(items):
+    """
+    Static method for making a list out of an item if it isn't a list or
+    tuple already.
+
+    Parameters:
+        - items: The variable to make sure it is a list.
+
+    Returns:
+        The input as a list or tuple.
+    """
+    return (
+        [items]
+        if not isinstance(items, (list, tuple)) else
+        items 
+    )
+    
+
+def _string_handler(item):
+    """
+    Static method for making a string out of an item if isn't it
+    already.
+
+    Parameters:
+        - item: The variable to make sure it is a string.
+
+    Returns:
+        The input as a string.
+    """
+    return (
+        str(item) 
+        if not isinstance(item, str) else 
+        item
+    )
+
+
+def validate_periods(self, periods):
+    return list(
+        _string_handler(period)
+        for period in _iter_handler(periods)
+    )
+
+
 class Visualizer:
     """Class with utility methods"""
     @staticmethod
@@ -85,7 +129,8 @@ class Visualizer:
             raise ValueError(
                 'If providing only `x` or `y`, it must be a single value.'
             )
-        return ax.legend()
+        ax.legend()
+        return ax
 
     @staticmethod
     def plot_shaded_region(ax, x=tuple(), y=tuple(), **kwargs):
@@ -115,48 +160,6 @@ class Visualizer:
         elif not x and y:
             ax.axhspan(*y, **kwargs) # Horizontal span
         return ax
-
-    @staticmethod
-    def _iter_handler(items):
-        """
-        Static method for making a list out of an item if it isn't a list or
-        tuple already.
-
-        Parameters:
-            - items: The variable to make sure it is a list.
-
-        Returns:
-            The input as a list or tuple.
-        """
-        return (
-            [items]
-            if not isinstance(items, (list, tuple)) else
-            items 
-        )
-    
-    @staticmethod
-    def _string_handler(item):
-        """
-        Static method for making a string out of an item if isn't it
-        already.
-
-        Parameters:
-            - item: The variable to make sure it is a string.
-
-        Returns:
-            The input as a string.
-        """
-        return (
-            str(item) 
-            if not isinstance(item, str) else 
-            item
-        )
-
-    def validate_periods(self, periods):
-        return list(
-            self._string_handler(period)
-            for period in self._iter_handler(periods)
-        )
 
 
 class StockVisualizer:
