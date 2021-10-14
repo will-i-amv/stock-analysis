@@ -90,10 +90,19 @@ def _string_handler(item):
     )
 
 
-def validate_periods(self, periods):
-    return list(
-        _string_handler(period)
-        for period in _iter_handler(periods)
+def validate_period(named_arg, period):
+    return (
+        period
+        if named_arg == 'rule' else
+        int(period.strip('D'))
+    )
+
+
+def validate_name(named_arg):
+    return (
+        'MA' 
+        if named_arg == 'rule' else 
+        'EWMA'
     )
 
 
@@ -206,18 +215,6 @@ class Visualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        def validate_period(period):
-            return (
-                period
-                if named_arg == 'rule' else
-                int(period.strip('D'))
-            )
-        def validate_name(named_arg):
-            return (
-                'MA' 
-                if named_arg == 'rule' else 
-                'EWMA'
-            )
         ax = self.plot_curve(
             data=data,
             ax=ax,
@@ -228,7 +225,7 @@ class Visualizer:
                 series=data, 
                 func=func, 
                 named_arg=named_arg, 
-                period=validate_period(period),
+                period=validate_period(named_arg, period),
             )
             ax = self.plot_curve(
                 data=moving_avg,
@@ -710,42 +707,23 @@ class AssetGroupVisualizer:
             A matplotlib `Axes` object.
         """
         num_categories = self.df[self.group_by].nunique()
-        fig, axes = plt.subplots(
+        _, ax_layout = plt.subplots(
             num_categories,
             2,
             figsize=(15, 3 * num_categories)
         )
-        for ax, (name, data) in zip(
-            axes, 
+        for ax_row, (name, data) in zip(
+            ax_layout, 
             self.df.groupby(self.group_by)
         ):
-            after_hours = data.open - data.close.shift()
-            monthly_effect = after_hours\
-                .resample('1M')\
-                .sum()
-            after_hours\
-                .plot(
-                    ax=ax[0],
-                    title=f'{name} Open Price - Prior Day\'s Close'
-                )\
-                .set_ylabel('price')
-            monthly_effect.index = monthly_effect.index.strftime('%Y-%b')
-            monthly_effect\
-                .plot(
-                    ax=ax[1],
-                    kind='bar',
-                    title=f'{name} after-hours trading monthly effect',
-                    color=np.where(monthly_effect >= 0, 'g', 'r'),
-                    rot=90
-                )\
-                .axhline(
-                    0, 
-                    color='black', 
-                    linewidth=1
-                )
-            ax[1].set_ylabel('price')
+            ax = self.viz.plot_difference(
+                df=data,
+                axes=ax_row,
+                period='1M',
+                name=name
+            )
         plt.tight_layout()
-        return axes
+        return ax
 
     def create_pivot_table(self, column):
         return self.df.pivot_table(
