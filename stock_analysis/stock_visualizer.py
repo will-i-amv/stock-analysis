@@ -50,8 +50,8 @@ def resample_df(df, resample, agg_dict):
 
 def resample_series(data, period):
     return data\
-            .resample(period)\
-            .sum()
+        .resample(period)\
+        .sum()
 
 
 def _iter_handler(items):
@@ -99,8 +99,10 @@ def validate_periods(self, periods):
 
 class Visualizer:
     """Class with utility methods"""
-    @staticmethod
-    def plot_reference_line(ax, x=None, y=None, **kwargs):
+    def __init__(self):
+        pass
+
+    def plot_reference_line(self, ax, x=None, y=None, **kwargs):
         """
         Static method for adding reference lines to plots.
 
@@ -136,8 +138,7 @@ class Visualizer:
         ax.legend()
         return ax
 
-    @staticmethod
-    def plot_shaded_region(ax, x=tuple(), y=tuple(), **kwargs):
+    def plot_shaded_region(self, ax, x=tuple(), y=tuple(), **kwargs):
         """
         Static method for shading a region on a plot.
 
@@ -165,8 +166,7 @@ class Visualizer:
             ax.axhspan(*y, **kwargs) # Horizontal span
         return ax
 
-    @staticmethod
-    def plot_curve(df, column, **kwargs):
+    def plot_curve(self, df, column, **kwargs):
         """
         Visualize the evolution over time of a column.
 
@@ -190,8 +190,7 @@ class Visualizer:
         )
         return ax
 
-    @staticmethod
-    def plot_curves(series, ax, periods, func, named_arg, **kwargs):
+    def plot_curves(self, series, ax, periods, func, named_arg, **kwargs):
         """
         Helper method for plotting moving averages for different periods.
 
@@ -231,8 +230,7 @@ class Visualizer:
             )
         return ax
 
-    @staticmethod
-    def plot_boxplot(df, column, **kwargs):
+    def plot_boxplot(self, df, column, **kwargs):
         """
         Generate box plots for all columns.
 
@@ -249,8 +247,7 @@ class Visualizer:
             **kwargs
         )
 
-    @staticmethod
-    def plot_histogram(df, column, **kwargs):
+    def plot_histogram(self, df, column, **kwargs):
         """
         Generate the histogram of a given column.
 
@@ -268,8 +265,7 @@ class Visualizer:
             **kwargs
         )
 
-    @staticmethod
-    def plot_pairplot(df, **kwargs):
+    def plot_pairplot(self, df, **kwargs):
         """
         Generate a seaborn pairplot for this asset.
 
@@ -284,8 +280,7 @@ class Visualizer:
             **kwargs
         )
 
-    @staticmethod
-    def plot_jointplot(df1, df2, column, **kwargs):
+    def plot_jointplot(self, df1, df2, column, **kwargs):
         """
         Generate a seaborn jointplot for given column in asset compared to
         another asset.
@@ -304,8 +299,7 @@ class Visualizer:
             **kwargs
         )
 
-    @staticmethod
-    def plot_area_between(y1, y2, title, label_higher, label_lower, figsize, legend_x):
+    def plot_area_between(self, y1, y2, title, label_higher, label_lower, figsize, legend_x):
         """
         Visualize the difference between assets.
 
