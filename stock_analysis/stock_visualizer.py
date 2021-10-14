@@ -347,6 +347,30 @@ class Visualizer:
         plt.suptitle(title)
         return fig.axes[0]
 
+    def plot_difference(self, df, axes, period, name):
+        daily_effect = calc_diff(df)
+        monthly_effect = resample_series(
+            data=daily_effect, 
+            period=period, 
+        )
+        ax = self.plot_curve(
+            data=daily_effect,
+            ax=axes[0],
+        )
+        ax = axes[1].bar(
+            x=monthly_effect.index,
+            height=monthly_effect,
+            width=10,
+            color=np.where(monthly_effect >= 0, 'g', 'r'),
+        )
+        for ax in axes:
+            ax = self.plot_reference_line(
+                ax=ax,
+                y=0, 
+                color='black', 
+                linewidth=1
+            )
+        return ax
 
 class StockVisualizer:
     """Class for visualizing a single asset."""
@@ -444,30 +468,13 @@ class StockVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        daily_effect = calc_diff(self.df)
-        monthly_effect = resample_series(
-            data=daily_effect, 
-            period='1M', 
+        _, ax_row = plt.subplots(1, 2, figsize=(15, 3))
+        return self.viz.plot_difference(
+            df=self.df,
+            axes=ax_row,
+            period='1M',
+            name='Asset'
         )
-        _, axes = plt.subplots(1, 2, figsize=(15, 3))
-        for i, series in enumerate([daily_effect, monthly_effect]):
-            axes[i] = sns.lineplot(
-                x=series.index,
-                y=series,
-                ax=axes[i],
-            )
-            axes[i].axhline(
-                0, 
-                color='black', 
-                linewidth=1
-            )    
-            axes[i].set_xlabel('Date')
-            axes[i].set_ylabel('price ($)')
-            axes[i].set_xticklabels(
-                labels=series.index.strftime('%Y-%b'),
-                rotation=45,
-            )
-        return axes
 
     def plot_between_open_close(self, figsize=(10, 4)):
         """
