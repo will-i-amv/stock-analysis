@@ -8,6 +8,14 @@ import seaborn as sns
 from .utils import validate_df
 
 
+def create_pivot_table(df, columns, column_values):
+    return df.pivot_table(
+        index=df.index, 
+        columns=columns,
+        values=column_values, 
+    )
+
+
 def calc_correlation(df1, df2):
     return df1.corrwith(df2).loc[lambda x: x.notnull()]
 
@@ -50,8 +58,8 @@ def resample_df(df, resample, agg_dict):
 
 def resample_series(data, period):
     return data\
-            .resample(period)\
-            .sum()
+        .resample(period)\
+        .sum()
 
 
 def _iter_handler(items):
@@ -90,19 +98,30 @@ def _string_handler(item):
     )
 
 
-def validate_periods(self, periods):
-    return list(
-        _string_handler(period)
-        for period in _iter_handler(periods)
+def validate_period(named_arg, period):
+    return (
+        period
+        if named_arg == 'rule' else
+        int(period.strip('D'))
+    )
+
+
+def validate_name(named_arg):
+    return (
+        'MA' 
+        if named_arg == 'rule' else 
+        'EWMA'
     )
 
 
 class Visualizer:
     """Class with utility methods"""
-    @staticmethod
-    def plot_reference_line(ax, x=None, y=None, **kwargs):
+    def __init__(self):
+        pass
+
+    def plot_reference_line(self, ax, x=None, y=None, **kwargs):
         """
-        Static method for adding reference lines to plots.
+        Method for adding reference lines to plots.
 
         Parameters:
             - ax: The matplotlib `Axes` object to add the reference line to.
@@ -118,13 +137,13 @@ class Visualizer:
         Returns:
             The matplotlib `Axes` object passed in.
         """
-        if not x and not y:
+        if (x is None) and (y is None):
             raise ValueError(
                 'You must provide an `x` or a `y` at a minimum.'
             )
-        elif x and not y:
+        if (x is not None) and (y is None):
             ax.axvline(x, **kwargs) # Vertical line
-        elif not x and y:
+        elif (x is None) and (y is not None):
             ax.axhline(y, **kwargs) # Horizontal line
         elif x.shape and y.shape:
             # In case numpy array-like structures are passed -> AB line
@@ -136,8 +155,7 @@ class Visualizer:
         ax.legend()
         return ax
 
-    @staticmethod
-    def plot_shaded_region(ax, x=tuple(), y=tuple(), **kwargs):
+    def plot_shaded_region(self, ax, x=tuple(), y=tuple(), **kwargs):
         """
         Static method for shading a region on a plot.
 
@@ -165,8 +183,7 @@ class Visualizer:
             ax.axhspan(*y, **kwargs) # Horizontal span
         return ax
 
-    @staticmethod
-    def plot_curve(df, column, **kwargs):
+    def plot_curve(self, data, **kwargs):
         """
         Visualize the evolution over time of a column.
 
@@ -179,19 +196,16 @@ class Visualizer:
             A matplotlib `Axes` object.
         """
         ax = sns.lineplot(
-            data=df,
-            x=df.index,
-            y=df.loc[:,column], 
+            data=data,
             **kwargs
         )
         ax.set_xticklabels(
-            labels=df.index.strftime('%Y-%b'),
+            labels=data.index.strftime('%Y-%b'),
             rotation=45,
         )
         return ax
 
-    @staticmethod
-    def plot_curves(series, ax, periods, func, named_arg, **kwargs):
+    def plot_moving_averages(self, data, ax, periods, func, named_arg, **kwargs):
         """
         Helper method for plotting moving averages for different periods.
 
@@ -209,30 +223,27 @@ class Visualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        valid_name = 'MA' if named_arg == 'rule' else 'EWMA'
+        ax = self.plot_curve(
+            data=data,
+            ax=ax,
+            **kwargs
+        )
         for period in periods:
-            valid_period = (
-                int(period.strip('D'))
-                if valid_name == 'EWMA' else
-                period
-            )
-            series = calc_moving_average(
-                series=series, 
+            moving_avg = calc_moving_average(
+                series=data, 
                 func=func, 
                 named_arg=named_arg, 
-                period=valid_period,
+                period=validate_period(named_arg, period),
             )
-            ax = sns.lineplot(
-                data=series,
+            ax = self.plot_curve(
+                data=moving_avg,
                 ax=ax,
                 linestyle='--',
-                label=f'{period} {valid_name}',
-                **kwargs
+                label=f'{period} {validate_name(named_arg)}',
             )
         return ax
 
-    @staticmethod
-    def plot_boxplot(df, column, **kwargs):
+    def plot_boxplot(self, df, column, **kwargs):
         """
         Generate box plots for all columns.
 
@@ -249,8 +260,7 @@ class Visualizer:
             **kwargs
         )
 
-    @staticmethod
-    def plot_histogram(df, column, **kwargs):
+    def plot_histogram(self, df, column, **kwargs):
         """
         Generate the histogram of a given column.
 
@@ -268,8 +278,7 @@ class Visualizer:
             **kwargs
         )
 
-    @staticmethod
-    def plot_pairplot(df, **kwargs):
+    def plot_pairplot(self, df, **kwargs):
         """
         Generate a seaborn pairplot for this asset.
 
@@ -284,8 +293,7 @@ class Visualizer:
             **kwargs
         )
 
-    @staticmethod
-    def plot_jointplot(df1, df2, column, **kwargs):
+    def plot_jointplot(self, df1, df2, column, **kwargs):
         """
         Generate a seaborn jointplot for given column in asset compared to
         another asset.
@@ -304,8 +312,7 @@ class Visualizer:
             **kwargs
         )
 
-    @staticmethod
-    def plot_area_between(y1, y2, title, label_higher, label_lower, figsize, legend_x):
+    def plot_area_between(self, y1, y2, title, label_higher, label_lower, figsize, legend_x):
         """
         Visualize the difference between assets.
 
@@ -345,6 +352,30 @@ class Visualizer:
         plt.suptitle(title)
         return fig.axes[0]
 
+    def plot_difference(self, df, axes, period, name):
+        daily_effect = calc_diff(df)
+        monthly_effect = resample_series(
+            data=daily_effect, 
+            period=period, 
+        )
+        ax = self.plot_curve(
+            data=daily_effect,
+            ax=axes[0],
+        )
+        ax = axes[1].bar(
+            x=monthly_effect.index,
+            height=monthly_effect,
+            width=10,
+            color=np.where(monthly_effect >= 0, 'g', 'r'),
+        )
+        for ax in axes:
+            ax = self.plot_reference_line(
+                ax=ax,
+                y=0, 
+                color='black', 
+                linewidth=1
+            )
+        return ax
 
 class StockVisualizer:
     """Class for visualizing a single asset."""
@@ -442,30 +473,13 @@ class StockVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        daily_effect = calc_diff(self.df)
-        monthly_effect = resample_series(
-            data=daily_effect, 
-            period='1M', 
+        _, ax_row = plt.subplots(1, 2, figsize=(15, 3))
+        return self.viz.plot_difference(
+            df=self.df,
+            axes=ax_row,
+            period='1M',
+            name='Asset'
         )
-        _, axes = plt.subplots(1, 2, figsize=(15, 3))
-        for i, series in enumerate([daily_effect, monthly_effect]):
-            axes[i] = sns.lineplot(
-                x=series.index,
-                y=series,
-                ax=axes[i],
-            )
-            axes[i].axhline(
-                0, 
-                color='black', 
-                linewidth=1
-            )    
-            axes[i].set_xlabel('Date')
-            axes[i].set_ylabel('price ($)')
-            axes[i].set_xticklabels(
-                labels=series.index.strftime('%Y-%b'),
-                rotation=45,
-            )
-        return axes
 
     def plot_between_open_close(self, figsize=(10, 4)):
         """
@@ -512,31 +526,7 @@ class StockVisualizer:
         ax.set_ylabel('price')
         return ax
 
-    def plot_moving_average(self, ax, column, periods, **kwargs):
-        """
-        Add curve(s) for the moving average of a column.
-
-        Parameters:
-            - ax: The matplotlib `Axes` object to add the curves to.
-            - column: The name of the column to plot.
-            - periods: The rule or list of rules for resampling,
-                        like '20D' for 20-day periods.
-            - kwargs: Additional arguments to pass down 
-                        to the plotting function.
-
-        Returns:
-            A matplotlib `Axes` object.
-        """
-        return self.viz.plot_curves(
-            series=self.df.loc[:,column], 
-            periods=periods,
-            ax=ax,
-            func=pd.DataFrame.resample, 
-            named_arg='rule', 
-            **kwargs
-        )
-
-    def plot_exp_smoothing(self, ax, column, periods, **kwargs):
+    def plot_moving_averages(self, column, periods, type_, **kwargs):
         """
         Add curve(s) for the exponentially smoothed moving average of a column.
 
@@ -551,14 +541,23 @@ class StockVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.viz.plot_curves(
-            series=self.df.loc[:,column], 
-            periods=periods, 
+        if type_ == 'MA':
+            func=pd.DataFrame.resample
+            named_arg='rule'
+        if type_ == 'EWMA':
+            func=pd.DataFrame.ewm
+            named_arg='span'
+        
+        _, ax = plt.subplots(1, 1)
+        ax = self.viz.plot_moving_averages(
+            data=self.df.loc[:,column], 
             ax=ax,
-            func=pd.DataFrame.ewm, 
-            named_arg='span', 
+            periods=periods,
+            func=func, 
+            named_arg=named_arg, 
             **kwargs
         )
+        return ax
 
 
 class AssetGroupVisualizer:
@@ -567,6 +566,7 @@ class AssetGroupVisualizer:
     def __init__(self, df, group_by='name'):
         self.df = df
         self.group_by = group_by
+        self.viz = Visualizer()
 
     def plot_curve(self, column, **kwargs):
         """
@@ -660,54 +660,52 @@ class AssetGroupVisualizer:
             ax.set_title(f'{name} - {column}')
         return axes
 
-    def _window_calc(self, column, periods, name, func, named_arg, **kwargs):
+    def plot_moving_averages(self, column, periods, type_, **kwargs):
         """
-        Helper method for plotting a series and adding reference lines using
-        a window calculation.
+        Add curve(s) for the exponentially smoothed moving average of a column.
 
         Parameters:
+            - ax: The matplotlib `Axes` object to add the curves to.
             - column: The name of the column to plot.
-            - periods: The rule/span or list of them to pass to the
-                       resampling/smoothing function, like '20D' 
-                       for 20-day periods
-                       (for resampling) or 20 for a 20-day span (smoothing)
-            - name: The name of the window calculation (to show in the legend).
-            - func: The window calculation function.
-            - named_arg: The name of the argument `periods` is being passed as.
-            - kwargs: Additional arguments to pass down to the plotting function.
+            - periods: The span or list of spans for smoothing,
+                        like 20 for 20-day periods.
+            - kwargs: Additional arguments to pass down 
+                        to the plotting function.
 
         Returns:
             A matplotlib `Axes` object.
         """
-        fig, axes = self._get_layout()
-        for ax, asset_name in zip(
-            axes, 
-            self.df[self.group_by].unique()
-        ):
-            subset = self.df\
-                .query(f'{self.group_by} == "{asset_name}"')
-            ax = subset.plot(
-                y=column, 
-                ax=ax, 
-                label=asset_name, 
-                **kwargs
-            )
-            for period in self._iter_handler(periods):
-                validPeriod = \
-                    period \
-                    if isinstance(period, str) else \
-                    str(period)
-                subset[column]\
-                    .pipe(func, **{named_arg: period})\
-                    .mean()\
-                    .plot(
-                        ax=ax,
-                        linestyle='--',
-                        label=f'{validPeriod + "D"} {name}'
-                    )
-            ax.legend()
-        plt.tight_layout()
-        return ax
+        def _plot_moving_averages(column, periods, func, named_arg, **kwargs):
+            _, ax_layout = self._get_layout()
+            asset_names = self.df[self.group_by].unique()
+            for ax, asset_name in zip(ax_layout, asset_names):
+                subset = self.df\
+                    .query(f'{self.group_by} == "{asset_name}"')\
+                    .loc[:,column]
+                ax = self.viz.plot_moving_averages(
+                    data=subset, 
+                    ax=ax,
+                    periods=periods,
+                    func=func, 
+                    named_arg=named_arg, 
+                    label=asset_name,
+                )
+            plt.tight_layout()
+            return ax
+        
+        if type_ == 'MA':
+            func=pd.DataFrame.resample
+            named_arg='rule'
+        if type_ == 'EWMA':
+            func=pd.DataFrame.ewm
+            named_arg='span'
+        return _plot_moving_averages(
+            column=column,
+            periods=periods, 
+            func=func, 
+            named_arg=named_arg, 
+            **kwargs,
+        )
 
     def plot_after_hours_trades(self):
         """
@@ -717,49 +715,23 @@ class AssetGroupVisualizer:
             A matplotlib `Axes` object.
         """
         num_categories = self.df[self.group_by].nunique()
-        fig, axes = plt.subplots(
+        _, ax_layout = plt.subplots(
             num_categories,
             2,
             figsize=(15, 3 * num_categories)
         )
-        for ax, (name, data) in zip(
-            axes, 
+        for ax_row, (name, data) in zip(
+            ax_layout, 
             self.df.groupby(self.group_by)
         ):
-            after_hours = data.open - data.close.shift()
-            monthly_effect = after_hours\
-                .resample('1M')\
-                .sum()
-            after_hours\
-                .plot(
-                    ax=ax[0],
-                    title=f'{name} Open Price - Prior Day\'s Close'
-                )\
-                .set_ylabel('price')
-            monthly_effect.index = monthly_effect.index.strftime('%Y-%b')
-            monthly_effect\
-                .plot(
-                    ax=ax[1],
-                    kind='bar',
-                    title=f'{name} after-hours trading monthly effect',
-                    color=np.where(monthly_effect >= 0, 'g', 'r'),
-                    rot=90
-                )\
-                .axhline(
-                    0, 
-                    color='black', 
-                    linewidth=1
-                )
-            ax[1].set_ylabel('price')
+            ax = self.viz.plot_difference(
+                df=data,
+                axes=ax_row,
+                period='1M',
+                name=name
+            )
         plt.tight_layout()
-        return axes
-
-    def create_pivot_table(self, column):
-        return self.df.pivot_table(
-            values=column, 
-            index=self.df.index, 
-            columns=self.group_by
-        )
+        return ax
 
     def plot_pairplot(self, **kwargs):
         """
@@ -772,7 +744,11 @@ class AssetGroupVisualizer:
             A seaborn pairplot
         """
         return sns.pairplot(
-            data=self.create_pivot_table('close'),
+            data=create_pivot_table(
+                df=self.df,
+                columns=self.group_by,
+                column_values='close',
+            ),
             diag_kind='kde',
             **kwargs
         )
@@ -790,10 +766,15 @@ class AssetGroupVisualizer:
         Returns:
             A seaborn heatmap
         """
+        _pivot_table = create_pivot_table(
+            df=self.df,
+            columns=self.group_by,
+            column_values='close',
+        )
         pivot_table = (
-            self.create_pivot_table('close').pct_change()
+            _pivot_table.pct_change()
             if pct_change else
-            self.create_pivot_table('close')
+            _pivot_table
         )
         return sns.heatmap(
             data=pivot_table.corr(), 
