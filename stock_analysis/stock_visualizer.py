@@ -166,7 +166,7 @@ class Visualizer:
             ax.axhspan(*y, **kwargs) # Horizontal span
         return ax
 
-    def plot_curve(self, df, column, **kwargs):
+    def plot_curve(self, data, **kwargs):
         """
         Visualize the evolution over time of a column.
 
@@ -179,13 +179,11 @@ class Visualizer:
             A matplotlib `Axes` object.
         """
         ax = sns.lineplot(
-            data=df,
-            x=df.index,
-            y=df.loc[:,column], 
+            data=data,
             **kwargs
         )
         ax.set_xticklabels(
-            labels=df.index.strftime('%Y-%b'),
+            labels=data.index.strftime('%Y-%b'),
             rotation=45,
         )
         return ax
