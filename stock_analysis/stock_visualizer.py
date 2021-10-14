@@ -8,6 +8,14 @@ import seaborn as sns
 from .utils import validate_df
 
 
+def create_pivot_table(df, columns, column_values):
+    return df.pivot_table(
+        index=df.index, 
+        columns=columns,
+        values=column_values, 
+    )
+
+
 def calc_correlation(df1, df2):
     return df1.corrwith(df2).loc[lambda x: x.notnull()]
 
@@ -725,13 +733,6 @@ class AssetGroupVisualizer:
         plt.tight_layout()
         return ax
 
-    def create_pivot_table(self, column):
-        return self.df.pivot_table(
-            values=column, 
-            index=self.df.index, 
-            columns=self.group_by
-        )
-
     def plot_pairplot(self, **kwargs):
         """
         Generate a seaborn pairplot for this asset group.
@@ -743,7 +744,11 @@ class AssetGroupVisualizer:
             A seaborn pairplot
         """
         return sns.pairplot(
-            data=self.create_pivot_table('close'),
+            data=create_pivot_table(
+                df=self.df,
+                columns=self.group_by,
+                column_values='close',
+            ),
             diag_kind='kde',
             **kwargs
         )
@@ -761,10 +766,15 @@ class AssetGroupVisualizer:
         Returns:
             A seaborn heatmap
         """
+        _pivot_table = create_pivot_table(
+            df=self.df,
+            columns=self.group_by,
+            column_values='close',
+        )
         pivot_table = (
-            self.create_pivot_table('close').pct_change()
+            _pivot_table.pct_change()
             if pct_change else
-            self.create_pivot_table('close')
+            _pivot_table
         )
         return sns.heatmap(
             data=pivot_table.corr(), 
