@@ -554,6 +554,7 @@ class AssetGroupVisualizer:
     def __init__(self, df, group_by='name'):
         self.df = df
         self.group_by = group_by
+        self.viz = Visualizer()
 
     def plot_curve(self, column, **kwargs):
         """
@@ -647,54 +648,52 @@ class AssetGroupVisualizer:
             ax.set_title(f'{name} - {column}')
         return axes
 
-    def _window_calc(self, column, periods, name, func, named_arg, **kwargs):
+    def plot_moving_averages(self, column, periods, type_, **kwargs):
         """
-        Helper method for plotting a series and adding reference lines using
-        a window calculation.
+        Add curve(s) for the exponentially smoothed moving average of a column.
 
         Parameters:
+            - ax: The matplotlib `Axes` object to add the curves to.
             - column: The name of the column to plot.
-            - periods: The rule/span or list of them to pass to the
-                       resampling/smoothing function, like '20D' 
-                       for 20-day periods
-                       (for resampling) or 20 for a 20-day span (smoothing)
-            - name: The name of the window calculation (to show in the legend).
-            - func: The window calculation function.
-            - named_arg: The name of the argument `periods` is being passed as.
-            - kwargs: Additional arguments to pass down to the plotting function.
+            - periods: The span or list of spans for smoothing,
+                        like 20 for 20-day periods.
+            - kwargs: Additional arguments to pass down 
+                        to the plotting function.
 
         Returns:
             A matplotlib `Axes` object.
         """
-        fig, axes = self._get_layout()
-        for ax, asset_name in zip(
-            axes, 
-            self.df[self.group_by].unique()
-        ):
-            subset = self.df\
-                .query(f'{self.group_by} == "{asset_name}"')
-            ax = subset.plot(
-                y=column, 
-                ax=ax, 
-                label=asset_name, 
-                **kwargs
-            )
-            for period in self._iter_handler(periods):
-                validPeriod = \
-                    period \
-                    if isinstance(period, str) else \
-                    str(period)
-                subset[column]\
-                    .pipe(func, **{named_arg: period})\
-                    .mean()\
-                    .plot(
-                        ax=ax,
-                        linestyle='--',
-                        label=f'{validPeriod + "D"} {name}'
-                    )
-            ax.legend()
-        plt.tight_layout()
-        return ax
+        def _plot_moving_averages(column, periods, func, named_arg, **kwargs):
+            _, ax_layout = self._get_layout()
+            asset_names = self.df[self.group_by].unique()
+            for ax, asset_name in zip(ax_layout, asset_names):
+                subset = self.df\
+                    .query(f'{self.group_by} == "{asset_name}"')\
+                    .loc[:,column]
+                ax = self.viz.plot_moving_averages(
+                    data=subset, 
+                    ax=ax,
+                    periods=periods,
+                    func=func, 
+                    named_arg=named_arg, 
+                    label=asset_name,
+                )
+            plt.tight_layout()
+            return ax
+        
+        if type_ == 'MA':
+            func=pd.DataFrame.resample
+            named_arg='rule'
+        if type_ == 'EWMA':
+            func=pd.DataFrame.ewm
+            named_arg='span'
+        return _plot_moving_averages(
+            column=column,
+            periods=periods, 
+            func=func, 
+            named_arg=named_arg, 
+            **kwargs,
+        )
 
     def plot_after_hours_trades(self):
         """
