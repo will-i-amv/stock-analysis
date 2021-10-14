@@ -188,7 +188,7 @@ class Visualizer:
         )
         return ax
 
-    def plot_curves(self, series, ax, periods, func, named_arg, **kwargs):
+    def plot_moving_averages(self, data, ax, periods, func, named_arg, **kwargs):
         """
         Helper method for plotting moving averages for different periods.
 
@@ -206,25 +206,35 @@ class Visualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        valid_name = 'MA' if named_arg == 'rule' else 'EWMA'
-        for period in periods:
-            valid_period = (
-                int(period.strip('D'))
-                if valid_name == 'EWMA' else
+        def validate_period(period):
+            return (
                 period
+                if named_arg == 'rule' else
+                int(period.strip('D'))
             )
-            series = calc_moving_average(
-                series=series, 
+        def validate_name(named_arg):
+            return (
+                'MA' 
+                if named_arg == 'rule' else 
+                'EWMA'
+            )
+        ax = self.plot_curve(
+            data=data,
+            ax=ax,
+            **kwargs
+        )
+        for period in periods:
+            moving_avg = calc_moving_average(
+                series=data, 
                 func=func, 
                 named_arg=named_arg, 
-                period=valid_period,
+                period=validate_period(period),
             )
-            ax = sns.lineplot(
-                data=series,
+            ax = self.plot_curve(
+                data=moving_avg,
                 ax=ax,
                 linestyle='--',
-                label=f'{period} {valid_name}',
-                **kwargs
+                label=f'{period} {validate_name(named_arg)}',
             )
         return ax
 
@@ -504,31 +514,7 @@ class StockVisualizer:
         ax.set_ylabel('price')
         return ax
 
-    def plot_moving_average(self, ax, column, periods, **kwargs):
-        """
-        Add curve(s) for the moving average of a column.
-
-        Parameters:
-            - ax: The matplotlib `Axes` object to add the curves to.
-            - column: The name of the column to plot.
-            - periods: The rule or list of rules for resampling,
-                        like '20D' for 20-day periods.
-            - kwargs: Additional arguments to pass down 
-                        to the plotting function.
-
-        Returns:
-            A matplotlib `Axes` object.
-        """
-        return self.viz.plot_curves(
-            series=self.df.loc[:,column], 
-            periods=periods,
-            ax=ax,
-            func=pd.DataFrame.resample, 
-            named_arg='rule', 
-            **kwargs
-        )
-
-    def plot_exp_smoothing(self, ax, column, periods, **kwargs):
+    def plot_moving_averages(self, column, periods, type_, **kwargs):
         """
         Add curve(s) for the exponentially smoothed moving average of a column.
 
@@ -543,14 +529,23 @@ class StockVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        return self.viz.plot_curves(
-            series=self.df.loc[:,column], 
-            periods=periods, 
+        if type_ == 'MA':
+            func=pd.DataFrame.resample
+            named_arg='rule'
+        if type_ == 'EWMA':
+            func=pd.DataFrame.ewm
+            named_arg='span'
+        
+        _, ax = plt.subplots(1, 1)
+        ax = self.viz.plot_moving_averages(
+            data=self.df.loc[:,column], 
             ax=ax,
-            func=pd.DataFrame.ewm, 
-            named_arg='span', 
+            periods=periods,
+            func=func, 
+            named_arg=named_arg, 
             **kwargs
         )
+        return ax
 
 
 class AssetGroupVisualizer:
