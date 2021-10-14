@@ -104,7 +104,7 @@ class Visualizer:
 
     def plot_reference_line(self, ax, x=None, y=None, **kwargs):
         """
-        Static method for adding reference lines to plots.
+        Method for adding reference lines to plots.
 
         Parameters:
             - ax: The matplotlib `Axes` object to add the reference line to.
@@ -120,13 +120,13 @@ class Visualizer:
         Returns:
             The matplotlib `Axes` object passed in.
         """
-        if not x and not y:
+        if (x is None) and (y is None):
             raise ValueError(
                 'You must provide an `x` or a `y` at a minimum.'
             )
-        elif x and not y:
+        if (x is not None) and (y is None):
             ax.axvline(x, **kwargs) # Vertical line
-        elif not x and y:
+        elif (x is None) and (y is not None):
             ax.axhline(y, **kwargs) # Horizontal line
         elif x.shape and y.shape:
             # In case numpy array-like structures are passed -> AB line
