@@ -613,14 +613,12 @@ class AssetGroupVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        fig, ax = self.viz.create_plot_layout()
-        if 'ax' in kwargs:
-            ax = kwargs.pop('ax')
-        return sns.lineplot(
+        _, ax = self.viz.create_plot_layout()
+        return self.viz.plot_curve(
+            data=self.df,
             x=self.df.index,
             y=column,
             hue=self.group_by,
-            data=self.df,
             ax=ax,
             **kwargs
         )
