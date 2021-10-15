@@ -8,24 +8,24 @@ import seaborn as sns
 from .utils import validate_df
 
 
-def create_pivot_table(df, columns, column_values):
-    return df.pivot_table(
-        index=df.index, 
+def create_pivot_table(data, columns, column_values):
+    return data.pivot_table(
+        index=data.index, 
         columns=columns,
         values=column_values, 
     )
 
 
-def calc_correlation(df1, df2):
-    return df1.corrwith(df2).loc[lambda x: x.notnull()]
+def calc_correlation(data1, data2):
+    return data1.corrwith(data2).loc[lambda x: x.notnull()]
 
 
-def calc_diff(df, column1='open', column2='close'):
-    return df[column1] - df[column2].shift()
+def calc_diff(data, column1='open', column2='close'):
+    return data[column1] - data[column2].shift()
 
 
-def calc_moving_average(series, func, named_arg, period):
-    return series\
+def calc_moving_average(data, func, named_arg, period):
+    return data\
         .pipe(
             func=func, 
             **{named_arg: period}
@@ -33,7 +33,7 @@ def calc_moving_average(series, func, named_arg, period):
         .mean()
 
 
-def resample_df(df, resample, agg_dict):
+def resample_df(data, resample, agg_dict):
     """
     Resample a dataframe and run functions on columns specified in a dict.
 
@@ -45,12 +45,12 @@ def resample_df(df, resample, agg_dict):
     Returns:
         The resampled dataframe
     """
-    return df\
+    return data\
             .resample(resample)\
             .agg(
                 dict(
                     (col, agg_dict[col])
-                    for col in df.columns
+                    for col in data.columns
                     if col in agg_dict
                 )
             )
@@ -231,7 +231,7 @@ class Visualizer:
         )
         for period in periods:
             moving_avg = calc_moving_average(
-                series=data, 
+                data=data, 
                 func=func, 
                 named_arg=named_arg, 
                 period=validate_period(named_arg, period),
@@ -244,7 +244,7 @@ class Visualizer:
             )
         return ax
 
-    def plot_boxplot(self, df, column, **kwargs):
+    def plot_boxplot(self, data, column, **kwargs):
         """
         Generate box plots for all columns.
 
@@ -256,12 +256,12 @@ class Visualizer:
             A matplotlib `Axes` object.
         """
         return sns.boxplot(
-            data=df,
-            y=df.loc[:,column],
+            data=data,
+            y=data.loc[:,column],
             **kwargs
         )
 
-    def plot_histogram(self, df, column, **kwargs):
+    def plot_histogram(self, data, column, **kwargs):
         """
         Generate the histogram of a given column.
 
@@ -274,12 +274,12 @@ class Visualizer:
             A matplotlib `Axes` object.
         """
         return sns.histplot(
-            data=df,
-            x=df.loc[:,column], 
+            data=data,
+            x=data.loc[:,column], 
             **kwargs
         )
 
-    def plot_pairplot(self, df, **kwargs):
+    def plot_pairplot(self, data, **kwargs):
         """
         Generate a seaborn pairplot for this asset.
 
@@ -290,11 +290,11 @@ class Visualizer:
             A seaborn pairplot
         """
         return sns.pairplot(
-            data=df, 
+            data=data, 
             **kwargs
         )
 
-    def plot_jointplot(self, df1, df2, column, **kwargs):
+    def plot_jointplot(self, data1, data2, column, **kwargs):
         """
         Generate a seaborn jointplot for given column in asset compared to
         another asset.
@@ -308,8 +308,8 @@ class Visualizer:
             A seaborn jointplot
         """
         return sns.jointplot(
-            x=df1.loc[:,column],
-            y=df2.loc[:,column],
+            x=data1.loc[:,column],
+            y=data2.loc[:,column],
             **kwargs
         )
 
@@ -353,8 +353,8 @@ class Visualizer:
         plt.suptitle(title)
         return fig.axes[0]
 
-    def plot_difference(self, df, axes, period, name):
-        daily_effect = calc_diff(df)
+    def plot_difference(self, data, axes, period, name):
+        daily_effect = calc_diff(data)
         monthly_effect = resample_series(
             data=daily_effect, 
             period=period, 
@@ -378,6 +378,7 @@ class Visualizer:
             )
         return ax
 
+
 class StockVisualizer:
     """Class for visualizing a single asset."""
     @validate_df(columns={'open', 'high', 'low', 'close'})
@@ -397,8 +398,8 @@ class StockVisualizer:
             A seaborn heatmap
         """
         correlations = calc_correlation(
-            df1=self.df.pct_change(),
-            df2=other.pct_change(),
+            data1=self.df.pct_change(),
+            data2=other.pct_change(),
         )
         size = len(correlations)
         corr_matrix = np.zeros((size, size),  float)
@@ -476,7 +477,7 @@ class StockVisualizer:
         """
         _, ax_row = plt.subplots(1, 2, figsize=(15, 3))
         return self.viz.plot_difference(
-            df=self.df,
+            data=self.df,
             axes=ax_row,
             period='1M',
             name='Asset'
@@ -726,7 +727,7 @@ class AssetGroupVisualizer:
             self.df.groupby(self.group_by)
         ):
             ax = self.viz.plot_difference(
-                df=data,
+                data=data,
                 axes=ax_row,
                 period='1M',
                 name=name
@@ -746,7 +747,7 @@ class AssetGroupVisualizer:
         """
         return sns.pairplot(
             data=create_pivot_table(
-                df=self.df,
+                data=self.df,
                 columns=self.group_by,
                 column_values='close',
             ),
@@ -768,7 +769,7 @@ class AssetGroupVisualizer:
             A seaborn heatmap
         """
         _pivot_table = create_pivot_table(
-            df=self.df,
+            data=self.df,
             columns=self.group_by,
             column_values='close',
         )
