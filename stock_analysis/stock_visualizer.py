@@ -197,6 +197,7 @@ class Visualizer:
         """
         ax = sns.lineplot(
             data=data,
+            x=data.index,
             **kwargs
         )
         ax.set_xticklabels(
