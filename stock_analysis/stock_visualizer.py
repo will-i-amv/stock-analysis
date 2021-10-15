@@ -259,7 +259,7 @@ class Visualizer:
             **kwargs
         )
 
-    def plot_histogram(self, data, column, **kwargs):
+    def plot_histogram(self, data, **kwargs):
         """
         Generate the histogram of a given column.
 
@@ -273,7 +273,6 @@ class Visualizer:
         """
         return sns.histplot(
             data=data,
-            x=data.loc[:,column], 
             **kwargs
         )
 
@@ -663,7 +662,7 @@ class AssetGroupVisualizer:
         ):
             ax = self.viz.plot_histogram(
                 data=data,
-                column=column,
+                x=data.loc[:,column], 
                 ax=ax,
                 kde=True, 
             )
