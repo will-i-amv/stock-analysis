@@ -377,6 +377,30 @@ class Visualizer:
             )
         return ax
 
+    def create_plot_layout(self, subplot_number=1, col_number=1):
+        """
+        Helper method for getting an autolayout of subplots (1 per group).
+
+        Returns:
+            The matplotlib `Figure` and `Axes` objects to plot with.
+        """
+        def remove_excess_axes(fig, axes):
+            for idx, ax in enumerate(axes.flatten()):
+                if subplot_number <= idx < len(axes.flatten()):
+                    ax.set_visible(False)
+            return fig, axes
+
+        row_number = math.ceil(subplot_number / col_number)
+        fig, axes = plt.subplots(
+            nrows=row_number, 
+            ncols=col_number, 
+            figsize=(15, 5*row_number)
+        )
+        if subplot_number == 1:
+            return fig, axes
+        else:
+            return remove_excess_axes(fig, axes)
+
 
 class StockVisualizer:
     """Class for visualizing a single asset."""
@@ -589,7 +613,7 @@ class AssetGroupVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        fig, ax = self._get_layout()
+        fig, ax = self.viz.create_plot_layout()
         if 'ax' in kwargs:
             ax = kwargs.pop('ax')
         return sns.lineplot(
@@ -620,30 +644,6 @@ class AssetGroupVisualizer:
             **kwargs
         )
 
-    def _get_layout(self):
-        """
-        Helper method for getting an autolayout of subplots (1 per group).
-
-        Returns:
-            The matplotlib `Figure` and `Axes` objects to plot with.
-        """
-        subplot_number = self.df\
-            .loc[:,self.group_by]\
-            .nunique()
-        row_number = math.ceil(subplot_number / 2)
-        fig, axes = plt.subplots(
-            nrows=row_number, 
-            ncols=2, 
-            figsize=(15, 5 * row_number)
-        )
-        if row_number > 1:
-            axes = axes.flatten()
-        if subplot_number < len(axes):
-            # Remove excess axes from autolayout
-            for i in range(subplot_number, len(axes)):
-                fig.delaxes(axes[i]) 
-        return fig, axes
-
     def plot_histogram(self, column, **kwargs):
         """
         Generate the histogram of a given column for all assets in group.
@@ -656,7 +656,10 @@ class AssetGroupVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        fig, axes = self._get_layout()
+        _, axes = self.viz.create_plot_layout(
+            subplot_number=len(self.asset_names),
+            col_number=2,
+        )
         for ax, (name, data) in zip(
             axes, 
             self.df.groupby(self.group_by)
@@ -685,7 +688,10 @@ class AssetGroupVisualizer:
             A matplotlib `Axes` object.
         """
         def _plot_moving_averages(column, periods, func, named_arg, **kwargs):
-            _, ax_layout = self._get_layout()
+            _, ax_layout = self.viz.create_plot_layout(
+                subplot_number=len(self.asset_names),
+                col_number=2,
+            )
             asset_names = self.df[self.group_by].unique()
             for ax, asset_name in zip(ax_layout, asset_names):
                 subset = self.df\
