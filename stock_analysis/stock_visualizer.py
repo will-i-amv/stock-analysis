@@ -692,8 +692,10 @@ class AssetGroupVisualizer:
                 subplot_number=len(self.asset_names),
                 col_number=2,
             )
-            asset_names = self.df[self.group_by].unique()
-            for ax, asset_name in zip(ax_layout, asset_names):
+            for ax, asset_name in zip(
+                ax_layout.flatten(), 
+                self.asset_names
+            ):
                 subset = self.df\
                     .query(f'{self.group_by} == "{asset_name}"')\
                     .loc[:,column]
