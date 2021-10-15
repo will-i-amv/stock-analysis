@@ -759,7 +759,7 @@ class AssetGroupVisualizer:
         Returns:
             A seaborn pairplot
         """
-        return sns.pairplot(
+        return self.viz.plot_pairplot(
             data=create_pivot_table(
                 data=self.df,
                 columns=self.group_by,
