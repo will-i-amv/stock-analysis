@@ -656,21 +656,22 @@ class AssetGroupVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        _, axes = self.viz.create_plot_layout(
+        _, ax_layout = self.viz.create_plot_layout(
             subplot_number=len(self.asset_names),
             col_number=2,
         )
         for ax, (name, data) in zip(
-            axes, 
-            self.df.groupby(self.group_by)
+            ax_layout.flatten(), 
+            self.grouped_df
         ):
-            sns.histplot(
-                data[column], 
+            ax = self.viz.plot_histogram(
+                data=data,
+                column=column,
+                ax=ax,
                 kde=True, 
-                ax=ax
             )
             ax.set_title(f'{name} - {column}')
-        return axes
+        return ax_layout
 
     def plot_moving_averages(self, column, periods, type_, **kwargs):
         """
