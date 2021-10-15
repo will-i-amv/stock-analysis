@@ -243,7 +243,7 @@ class Visualizer:
             )
         return ax
 
-    def plot_boxplot(self, data, column, **kwargs):
+    def plot_boxplot(self, data, **kwargs):
         """
         Generate box plots for all columns.
 
@@ -256,7 +256,6 @@ class Visualizer:
         """
         return sns.boxplot(
             data=data,
-            y=data.loc[:,column],
             **kwargs
         )
 
@@ -635,10 +634,10 @@ class AssetGroupVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        return sns.boxplot(
+        return self.viz.plot_boxplot(
+            data=self.df,
             x=self.group_by,
             y=column,
-            data=self.df,
             **kwargs
         )
 
