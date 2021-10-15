@@ -349,6 +349,13 @@ class Visualizer:
         )
         plt.suptitle(title)
         return fig.axes[0]
+    
+    def plot_bar(self, ax, color, **kwargs):
+        return ax.bar(
+            width=10,
+            color=color,
+            **kwargs,
+        )
 
     def plot_difference(self, data, axes, period, name):
         daily_effect = calc_diff(data)
@@ -360,10 +367,10 @@ class Visualizer:
             data=daily_effect,
             ax=axes[0],
         )
-        ax = axes[1].bar(
+        ax = self.plot_bar(
             x=monthly_effect.index,
             height=monthly_effect,
-            width=10,
+            ax=axes[1],
             color=np.where(monthly_effect >= 0, 'g', 'r'),
         )
         for ax in axes:
