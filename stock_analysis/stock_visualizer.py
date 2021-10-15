@@ -732,21 +732,19 @@ class AssetGroupVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        num_categories = self.df[self.group_by].nunique()
-        _, ax_layout = plt.subplots(
-            num_categories,
-            2,
-            figsize=(15, 3 * num_categories)
+        _, ax_layout = self.viz.create_plot_layout(
+            subplot_number=2*len(self.asset_names),
+            col_number=2,
         )
         for ax_row, (name, data) in zip(
             ax_layout, 
-            self.df.groupby(self.group_by)
+            self.grouped_df
         ):
             ax = self.viz.plot_difference(
                 data=data,
                 axes=ax_row,
                 period='1M',
-                name=name
+                name=name,
             )
         plt.tight_layout()
         return ax
