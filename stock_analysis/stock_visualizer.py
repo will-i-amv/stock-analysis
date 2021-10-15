@@ -8,24 +8,24 @@ import seaborn as sns
 from .utils import validate_df
 
 
-def create_pivot_table(df, columns, column_values):
-    return df.pivot_table(
-        index=df.index, 
+def create_pivot_table(data, columns, column_values):
+    return data.pivot_table(
+        index=data.index, 
         columns=columns,
         values=column_values, 
     )
 
 
-def calc_correlation(df1, df2):
-    return df1.corrwith(df2).loc[lambda x: x.notnull()]
+def calc_correlation(data1, data2):
+    return data1.corrwith(data2).loc[lambda x: x.notnull()]
 
 
-def calc_diff(df, column1='open', column2='close'):
-    return df[column1] - df[column2].shift()
+def calc_diff(data, column1='open', column2='close'):
+    return data[column1] - data[column2].shift()
 
 
-def calc_moving_average(series, func, named_arg, period):
-    return series\
+def calc_moving_average(data, func, named_arg, period):
+    return data\
         .pipe(
             func=func, 
             **{named_arg: period}
@@ -33,7 +33,7 @@ def calc_moving_average(series, func, named_arg, period):
         .mean()
 
 
-def resample_df(df, resample, agg_dict):
+def resample_df(data, resample, agg_dict):
     """
     Resample a dataframe and run functions on columns specified in a dict.
 
@@ -45,12 +45,12 @@ def resample_df(df, resample, agg_dict):
     Returns:
         The resampled dataframe
     """
-    return df\
+    return data\
             .resample(resample)\
             .agg(
                 dict(
                     (col, agg_dict[col])
-                    for col in df.columns
+                    for col in data.columns
                     if col in agg_dict
                 )
             )
@@ -230,7 +230,7 @@ class Visualizer:
         )
         for period in periods:
             moving_avg = calc_moving_average(
-                series=data, 
+                data=data, 
                 func=func, 
                 named_arg=named_arg, 
                 period=validate_period(named_arg, period),
@@ -243,7 +243,7 @@ class Visualizer:
             )
         return ax
 
-    def plot_boxplot(self, df, column, **kwargs):
+    def plot_boxplot(self, data, **kwargs):
         """
         Generate box plots for all columns.
 
@@ -255,12 +255,11 @@ class Visualizer:
             A matplotlib `Axes` object.
         """
         return sns.boxplot(
-            data=df,
-            y=df.loc[:,column],
+            data=data,
             **kwargs
         )
 
-    def plot_histogram(self, df, column, **kwargs):
+    def plot_histogram(self, data, **kwargs):
         """
         Generate the histogram of a given column.
 
@@ -273,12 +272,11 @@ class Visualizer:
             A matplotlib `Axes` object.
         """
         return sns.histplot(
-            data=df,
-            x=df.loc[:,column], 
+            data=data,
             **kwargs
         )
 
-    def plot_pairplot(self, df, **kwargs):
+    def plot_pairplot(self, data, **kwargs):
         """
         Generate a seaborn pairplot for this asset.
 
@@ -289,11 +287,11 @@ class Visualizer:
             A seaborn pairplot
         """
         return sns.pairplot(
-            data=df, 
+            data=data, 
             **kwargs
         )
 
-    def plot_jointplot(self, df1, df2, column, **kwargs):
+    def plot_jointplot(self, data1, data2, column, **kwargs):
         """
         Generate a seaborn jointplot for given column in asset compared to
         another asset.
@@ -307,8 +305,8 @@ class Visualizer:
             A seaborn jointplot
         """
         return sns.jointplot(
-            x=df1.loc[:,column],
-            y=df2.loc[:,column],
+            x=data1.loc[:,column],
+            y=data2.loc[:,column],
             **kwargs
         )
 
@@ -351,9 +349,16 @@ class Visualizer:
         )
         plt.suptitle(title)
         return fig.axes[0]
+    
+    def plot_bar(self, ax, color, **kwargs):
+        return ax.bar(
+            width=10,
+            color=color,
+            **kwargs,
+        )
 
-    def plot_difference(self, df, axes, period, name):
-        daily_effect = calc_diff(df)
+    def plot_difference(self, data, axes, period, name):
+        daily_effect = calc_diff(data)
         monthly_effect = resample_series(
             data=daily_effect, 
             period=period, 
@@ -362,10 +367,10 @@ class Visualizer:
             data=daily_effect,
             ax=axes[0],
         )
-        ax = axes[1].bar(
+        ax = self.plot_bar(
             x=monthly_effect.index,
             height=monthly_effect,
-            width=10,
+            ax=axes[1],
             color=np.where(monthly_effect >= 0, 'g', 'r'),
         )
         for ax in axes:
@@ -376,6 +381,31 @@ class Visualizer:
                 linewidth=1
             )
         return ax
+
+    def create_plot_layout(self, subplot_number=1, col_number=1):
+        """
+        Helper method for getting an autolayout of subplots (1 per group).
+
+        Returns:
+            The matplotlib `Figure` and `Axes` objects to plot with.
+        """
+        def remove_excess_axes(fig, axes):
+            for idx, ax in enumerate(axes.flatten()):
+                if subplot_number <= idx < len(axes.flatten()):
+                    ax.set_visible(False)
+            return fig, axes
+
+        row_number = math.ceil(subplot_number / col_number)
+        fig, axes = plt.subplots(
+            nrows=row_number, 
+            ncols=col_number, 
+            figsize=(15, 5*row_number)
+        )
+        if subplot_number == 1:
+            return fig, axes
+        else:
+            return remove_excess_axes(fig, axes)
+
 
 class StockVisualizer:
     """Class for visualizing a single asset."""
@@ -396,8 +426,8 @@ class StockVisualizer:
             A seaborn heatmap
         """
         correlations = calc_correlation(
-            df1=self.df.pct_change(),
-            df2=other.pct_change(),
+            data1=self.df.pct_change(),
+            data2=other.pct_change(),
         )
         size = len(correlations)
         corr_matrix = np.zeros((size, size),  float)
@@ -475,7 +505,7 @@ class StockVisualizer:
         """
         _, ax_row = plt.subplots(1, 2, figsize=(15, 3))
         return self.viz.plot_difference(
-            df=self.df,
+            data=self.df,
             axes=ax_row,
             period='1M',
             name='Asset'
@@ -568,6 +598,14 @@ class AssetGroupVisualizer:
         self.group_by = group_by
         self.viz = Visualizer()
 
+    @property
+    def grouped_df(self):
+        return self.df.groupby(self.group_by)
+
+    @property
+    def asset_names(self):
+        return self.df.loc[:,self.group_by].unique()
+
     def plot_curve(self, column, **kwargs):
         """
         Visualize the evolution over time of a column for all assets in group.
@@ -580,14 +618,12 @@ class AssetGroupVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        fig, ax = self._get_layout()
-        if 'ax' in kwargs:
-            ax = kwargs.pop('ax')
-        return sns.lineplot(
+        _, ax = self.viz.create_plot_layout()
+        return self.viz.plot_curve(
+            data=self.df,
             x=self.df.index,
             y=column,
             hue=self.group_by,
-            data=self.df,
             ax=ax,
             **kwargs
         )
@@ -604,36 +640,12 @@ class AssetGroupVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        return sns.boxplot(
+        return self.viz.plot_boxplot(
+            data=self.df,
             x=self.group_by,
             y=column,
-            data=self.df,
             **kwargs
         )
-
-    def _get_layout(self):
-        """
-        Helper method for getting an autolayout of subplots (1 per group).
-
-        Returns:
-            The matplotlib `Figure` and `Axes` objects to plot with.
-        """
-        subplot_number = self.df\
-            .loc[:,self.group_by]\
-            .nunique()
-        row_number = math.ceil(subplot_number / 2)
-        fig, axes = plt.subplots(
-            nrows=row_number, 
-            ncols=2, 
-            figsize=(15, 5 * row_number)
-        )
-        if row_number > 1:
-            axes = axes.flatten()
-        if subplot_number < len(axes):
-            # Remove excess axes from autolayout
-            for i in range(subplot_number, len(axes)):
-                fig.delaxes(axes[i]) 
-        return fig, axes
 
     def plot_histogram(self, column, **kwargs):
         """
@@ -647,18 +659,22 @@ class AssetGroupVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        fig, axes = self._get_layout()
+        _, ax_layout = self.viz.create_plot_layout(
+            subplot_number=len(self.asset_names),
+            col_number=2,
+        )
         for ax, (name, data) in zip(
-            axes, 
-            self.df.groupby(self.group_by)
+            ax_layout.flatten(), 
+            self.grouped_df
         ):
-            sns.histplot(
-                data[column], 
+            ax = self.viz.plot_histogram(
+                data=data,
+                x=data.loc[:,column], 
+                ax=ax,
                 kde=True, 
-                ax=ax
             )
             ax.set_title(f'{name} - {column}')
-        return axes
+        return ax_layout
 
     def plot_moving_averages(self, column, periods, type_, **kwargs):
         """
@@ -676,9 +692,14 @@ class AssetGroupVisualizer:
             A matplotlib `Axes` object.
         """
         def _plot_moving_averages(column, periods, func, named_arg, **kwargs):
-            _, ax_layout = self._get_layout()
-            asset_names = self.df[self.group_by].unique()
-            for ax, asset_name in zip(ax_layout, asset_names):
+            _, ax_layout = self.viz.create_plot_layout(
+                subplot_number=len(self.asset_names),
+                col_number=2,
+            )
+            for ax, asset_name in zip(
+                ax_layout.flatten(), 
+                self.asset_names
+            ):
                 subset = self.df\
                     .query(f'{self.group_by} == "{asset_name}"')\
                     .loc[:,column]
@@ -714,21 +735,19 @@ class AssetGroupVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        num_categories = self.df[self.group_by].nunique()
-        _, ax_layout = plt.subplots(
-            num_categories,
-            2,
-            figsize=(15, 3 * num_categories)
+        _, ax_layout = self.viz.create_plot_layout(
+            subplot_number=2*len(self.asset_names),
+            col_number=2,
         )
         for ax_row, (name, data) in zip(
             ax_layout, 
-            self.df.groupby(self.group_by)
+            self.grouped_df
         ):
             ax = self.viz.plot_difference(
-                df=data,
+                data=data,
                 axes=ax_row,
                 period='1M',
-                name=name
+                name=name,
             )
         plt.tight_layout()
         return ax
@@ -743,9 +762,9 @@ class AssetGroupVisualizer:
         Returns:
             A seaborn pairplot
         """
-        return sns.pairplot(
+        return self.viz.plot_pairplot(
             data=create_pivot_table(
-                df=self.df,
+                data=self.df,
                 columns=self.group_by,
                 column_values='close',
             ),
@@ -767,7 +786,7 @@ class AssetGroupVisualizer:
             A seaborn heatmap
         """
         _pivot_table = create_pivot_table(
-            df=self.df,
+            data=self.df,
             columns=self.group_by,
             column_values='close',
         )
