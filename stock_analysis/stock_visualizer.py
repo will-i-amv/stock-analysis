@@ -107,13 +107,15 @@ class Visualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        ax = sns.lineplot(
-            data=data,
+        ax = data.plot(
+            kind='line',
+            rot=30,
+            xticks=pd.date_range(
+                start=data.index.min(),
+                end=data.index.max(),
+                freq='Q',
+            ),
             **kwargs
-        )
-        ax.set_xticklabels(
-            labels=data.index.strftime('%Y-%b'),
-            rotation=45,
         )
         return ax
 
@@ -278,6 +280,7 @@ class Visualizer:
         ax = self.plot_curve(
             data=daily_effect,
             ax=axes[0],
+            label=name,
         )
         ax = self.plot_bar(
             x=monthly_effect.index,
@@ -531,14 +534,17 @@ class AssetGroupVisualizer:
             A matplotlib `Axes` object.
         """
         _, ax = self.viz.create_plot_layout()
-        return self.viz.plot_curve(
-            data=self.df,
-            x=self.df.index,
-            y=column,
-            hue=self.group_by,
-            ax=ax,
-            **kwargs
-        )
+        for asset_name in self.asset_names:
+            subset = self.df\
+                .query(f'{self.group_by} == "{asset_name}"')\
+                .loc[:,column]
+            ax = self.viz.plot_curve(
+                data=subset,
+                ax=ax,
+                label=asset_name,
+            )
+        ax.legend()
+        return ax
 
     def plot_boxplot(self, column, **kwargs):
         """
