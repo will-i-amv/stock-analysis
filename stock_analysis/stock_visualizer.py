@@ -52,6 +52,13 @@ def validate_name(named_arg):
     )
 
 
+def remove_excess_axes(fig, axes, subplot_number):
+    for idx, ax in enumerate(axes.flatten()):
+        if subplot_number <= idx < len(axes.flatten()):
+            ax.set_visible(False)
+    return fig, axes
+
+
 class Visualizer:
     """Class with utility methods"""
     def __init__(self):
@@ -328,12 +335,6 @@ class Visualizer:
         Returns:
             The matplotlib `Figure` and `Axes` objects to plot with.
         """
-        def remove_excess_axes(fig, axes):
-            for idx, ax in enumerate(axes.flatten()):
-                if subplot_number <= idx < len(axes.flatten()):
-                    ax.set_visible(False)
-            return fig, axes
-
         row_number = math.ceil(subplot_number / col_number)
         fig, axes = plt.subplots(
             nrows=row_number, 
@@ -343,7 +344,7 @@ class Visualizer:
         if subplot_number == 1:
             return fig, axes
         else:
-            return remove_excess_axes(fig, axes)
+            return remove_excess_axes(fig, axes, subplot_number)
 
 
 class StockVisualizer:
