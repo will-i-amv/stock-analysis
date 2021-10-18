@@ -285,14 +285,15 @@ class Visualizer:
         plt.suptitle(title)
         return fig.axes[0]
     
-    def plot_bar(self, ax, color, **kwargs):
-        return ax.bar(
+    @set_ax_parameters
+    def plot_bar(self, data, **kwargs):
+        return data.plot(
+            kind='bar',
             width=10,
-            color=color,
-            **kwargs,
+            **kwargs
         )
 
-    def plot_difference(self, data, axes, period, name):
+    def plot_difference(self, data, period, axes, **kwargs):
         daily_effect = calc_diff(data)
         monthly_effect = resample_series(
             data=daily_effect, 
@@ -301,13 +302,15 @@ class Visualizer:
         ax = self.plot_curve(
             data=daily_effect,
             ax=axes[0],
-            label=name,
+            title='After-Hours Trading - Daily Effect',
+            **kwargs
         )
         ax = self.plot_bar(
-            x=monthly_effect.index,
-            height=monthly_effect,
+            data=monthly_effect,
             ax=axes[1],
+            title='After-Hours Trading - Monthly Effect',
             color=np.where(monthly_effect >= 0, 'g', 'r'),
+            **kwargs
         )
         for ax in axes:
             ax = self.plot_reference_line(
@@ -444,7 +447,7 @@ class StockVisualizer:
             data=self.df,
             axes=ax_row,
             period='1M',
-            name='Asset'
+            label='Asset'
         )
 
     def plot_between_open_close(self, figsize=(10, 4)):
@@ -686,7 +689,7 @@ class AssetGroupVisualizer:
                 data=data,
                 axes=ax_row,
                 period='1M',
-                name=name,
+                label=name,
             )
         plt.tight_layout()
         return ax
