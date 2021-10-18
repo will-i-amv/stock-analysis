@@ -1,5 +1,6 @@
 """Visualize financial instruments."""
 import math
+import functools
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 import numpy as np
@@ -8,6 +9,31 @@ import seaborn as sns
 from .utils import \
     validate_df, calc_correlation, calc_diff, calc_moving_average, \
     resample_df, resample_series, create_pivot_table
+
+
+def resample_index(index, period='Q'):
+    return pd.date_range(
+        start=index.min(),
+        end=index.max(),
+        freq=period,
+    )
+    
+def set_ax_parameters(method):
+    @functools.wraps(method)
+    def method_wrapper(self, *args, **kwargs):
+        df = {**kwargs}['data']
+        new_index = resample_index(df.index)
+        ax = method(self, *args, **kwargs)
+        ax.set_xticks(new_index)
+        ax.set_xticklabels(
+            labels=new_index.strftime('%Y-%b'),
+            rotation=30,
+        )
+        ax.set_xlabel('Date')
+        ax.set_ylabel('Price')
+        ax.legend()
+        return ax
+    return method_wrapper
 
 
 def validate_period(named_arg, period):
@@ -95,6 +121,7 @@ class Visualizer:
             ax.axhspan(*y, **kwargs) # Horizontal span
         return ax
 
+    @set_ax_parameters
     def plot_curve(self, data, **kwargs):
         """
         Visualize the evolution over time of a column.
@@ -109,12 +136,6 @@ class Visualizer:
         """
         ax = data.plot(
             kind='line',
-            rot=30,
-            xticks=pd.date_range(
-                start=data.index.min(),
-                end=data.index.max(),
-                freq='Q',
-            ),
             **kwargs
         )
         return ax
