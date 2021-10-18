@@ -140,43 +140,13 @@ class Visualizer:
         )
         return ax
 
-    def plot_moving_averages(self, data, ax, periods, func, named_arg, **kwargs):
-        """
-        Helper method for plotting moving averages for different periods.
-
-        Parameters:
-            - ax: The matplotlib `Axes` object to add the curves to.
-            - column: The name of the column to plot.
-            - periods: The rule/span or list of them to pass to the
-                        resampling/smoothing function, like '20D' 
-                        for 20-day periods
-                        (for resampling) or 20 for a 20-day span (smoothing)
-            - func: The window calculation function.
-            - named_arg: The name of the argument `periods` is being passed as.
-            - kwargs: Additional arguments to pass down to the plotting function.
-
-        Returns:
-            A matplotlib `Axes` object.
-        """
-        ax = self.plot_curve(
-            data=data,
-            ax=ax,
+    @set_ax_parameters
+    def plot_bar(self, data, **kwargs):
+        return data.plot(
+            kind='bar',
+            width=10,
             **kwargs
         )
-        for period in periods:
-            moving_avg = calc_moving_average(
-                data=data, 
-                func=func, 
-                named_arg=named_arg, 
-                period=validate_period(named_arg, period),
-            )
-            ax = self.plot_curve(
-                data=moving_avg,
-                ax=ax,
-                linestyle='--',
-                label=f'{period} {validate_name(named_arg)}',
-            )
-        return ax
 
     def plot_boxplot(self, data, **kwargs):
         """
@@ -245,6 +215,44 @@ class Visualizer:
             **kwargs
         )
 
+    def plot_moving_averages(self, data, ax, periods, func, named_arg, **kwargs):
+        """
+        Helper method for plotting moving averages for different periods.
+
+        Parameters:
+            - ax: The matplotlib `Axes` object to add the curves to.
+            - column: The name of the column to plot.
+            - periods: The rule/span or list of them to pass to the
+                        resampling/smoothing function, like '20D' 
+                        for 20-day periods
+                        (for resampling) or 20 for a 20-day span (smoothing)
+            - func: The window calculation function.
+            - named_arg: The name of the argument `periods` is being passed as.
+            - kwargs: Additional arguments to pass down to the plotting function.
+
+        Returns:
+            A matplotlib `Axes` object.
+        """
+        ax = self.plot_curve(
+            data=data,
+            ax=ax,
+            **kwargs
+        )
+        for period in periods:
+            moving_avg = calc_moving_average(
+                data=data, 
+                func=func, 
+                named_arg=named_arg, 
+                period=validate_period(named_arg, period),
+            )
+            ax = self.plot_curve(
+                data=moving_avg,
+                ax=ax,
+                linestyle='--',
+                label=f'{period} {validate_name(named_arg)}',
+            )
+        return ax
+
     def plot_area_between(self, y1, y2, title, label_higher, label_lower, figsize, legend_x):
         """
         Visualize the difference between assets.
@@ -283,15 +291,7 @@ class Visualizer:
             ncol=2
         )
         plt.suptitle(title)
-        return fig.axes[0]
-    
-    @set_ax_parameters
-    def plot_bar(self, data, **kwargs):
-        return data.plot(
-            kind='bar',
-            width=10,
-            **kwargs
-        )
+        return fig.axes[0]    
 
     def plot_difference(self, data, period, axes, **kwargs):
         daily_effect = calc_diff(data)
