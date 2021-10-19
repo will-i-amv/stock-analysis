@@ -260,30 +260,30 @@ class Visualizer:
             )
         return ax
 
-    def plot_area_between(self, y1, y2, title, label_higher, label_lower, figure):
+    def plot_area_between(self, data, data2, title, labels, figure):
         """
         Visualize the difference between assets.
 
         Parameters:
-            - y1, y2: Data to be plotted with fill between y2 - y1.
+            - data, data2: Data to be plotted with fill between data2 - data.
             - title: The title for the plot.
-            - label_higher: String label for when y2 is higher than y1.
-            - label_lower: String label for when y2 is lower than y1.
+            - label_higher: String label for when data2 is higher than data.
+            - label_lower: String label for when data2 is lower than data.
             - figsize: A tuple of (width, height) for the plot dimensions.
 
         Returns:
             A matplotlib `Axes` object.
         """
-        is_higher = y2 - y1 > 0
+        is_higher = data2 - data > 0
         for exclude_mask, color, label in zip(
             (is_higher, np.invert(is_higher)), # filters
             ('g', 'r'), # colors
-            (label_higher, label_lower), # labels
+            labels, # labels
         ):
             plt.fill_between(
-                x=y2.index, 
-                y1=y1, 
-                y2=y2, 
+                x=data.index, 
+                y1=data, 
+                y2=data2, 
                 figure=figure,
                 where=exclude_mask, 
                 color=color, 
@@ -461,12 +461,11 @@ class StockVisualizer:
         """
         fig, _ = self.viz.create_plot_layout()
         return self.viz.plot_area_between(
-            y1=self.df.open, 
-            y2=self.df.close, 
+            data=self.df.open, 
+            data2=self.df.close, 
             figure=fig,
             title='Daily price change (open to close)',
-            label_higher='Price rose', 
-            label_lower='Price fell'
+            labels=['Price rose', 'Price fell'],
         )
         return ax
 
@@ -483,12 +482,11 @@ class StockVisualizer:
         """
         fig, _ = self.viz.create_plot_layout()
         return self.viz.plot_area_between(
-            y1=other_df.close, 
-            y2=self.df.close, 
+            data=other_df.close, 
+            data2=self.df.close, 
             figure=fig, 
             title='Differential between asset closing price (this - other)',
-            label_higher='Asset is higher', 
-            label_lower='Asset is lower'
+            labels=['Asset is higher', 'Asset is lower']
         )
 
     def plot_moving_averages(self, column, periods, type_, **kwargs):
