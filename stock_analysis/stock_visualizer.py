@@ -222,6 +222,27 @@ class Visualizer:
             **kwargs
         )
 
+    def plot_heatmap(self, data, **kwargs):
+        """
+        Generate a seaborn jointplot for given column in asset compared to
+        another asset.
+
+        Parameters:
+            - column: The column name to use for the comparison.
+            - kwargs: Keyword arguments to pass down to `sns.jointplot()`
+
+        Returns:
+            A seaborn jointplot
+        """
+        return sns.heatmap(
+            data=data, 
+            annot=True, 
+            center=0, 
+            vmin=-1, 
+            vmax=1, 
+            **kwargs
+        )
+    
     def plot_moving_averages(self, data, ax, periods, func, named_arg, **kwargs):
         """
         Helper method for plotting moving averages for different periods.
@@ -373,15 +394,11 @@ class StockVisualizer:
         mask_matrix = np.ones_like(corr_matrix) # Create mask to only show diagonal
         np.fill_diagonal(corr_matrix, correlations)
         np.fill_diagonal(mask_matrix, 0)
-        return sns.heatmap(
+        return self.viz.plot_heatmap(
             data=corr_matrix,
-            annot=True,
             xticklabels=self.df.columns,
             yticklabels=self.df.columns,
-            center=0,
             mask=mask_matrix,
-            vmin=-1,
-            vmax=1
         )
 
     def plot_candlestick(self, date_range=None, resample=None, volume=False, **kwargs):
@@ -709,7 +726,7 @@ class AssetGroupVisualizer:
             **kwargs
         )
 
-    def plot_heatmap(self, pct_change=True, **kwargs):
+    def plot_correlation_heatmap(self, pct_change=True, **kwargs):
         """
         Generate a seaborn heatmap for correlations between assets.
 
@@ -732,11 +749,7 @@ class AssetGroupVisualizer:
             if pct_change else
             _pivot_table
         )
-        return sns.heatmap(
-            data=pivot_table.corr(), 
-            annot=True, 
-            center=0, 
-            vmin=-1, 
-            vmax=1, 
+        return self.viz.plot_heatmap(
+            data=pivot_table.corr(),
             **kwargs
         )
