@@ -8,19 +8,9 @@ import pandas as pd
 import seaborn as sns
 from .utils import \
     validate_df, calc_correlation, calc_diff, calc_moving_average, \
-    resample_df, resample_series, create_pivot_table
+    resample_df, resample_series, resample_index, \
+    create_pivot_table, query_df
 
-
-def query_df(df, col_name, col_value):
-    return df.query(f'{col_name} == "{col_value}"')
-
-
-def resample_index(index, period='Q'):
-    return pd.date_range(
-        start=index.min(),
-        end=index.max(),
-        freq=period,
-    )
     
 def set_ax_parameters(method):
     @functools.wraps(method)
