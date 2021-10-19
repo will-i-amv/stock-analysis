@@ -431,7 +431,7 @@ class StockVisualizer:
 
     def plot_correlation_heatmap(self, other_df):
         """
-        Plot the correlations between this asset and
+        Visualize the correlations between this asset and
         another one with a heatmap.
 
         Parameters:
@@ -458,7 +458,7 @@ class StockVisualizer:
 
     def plot_candlestick(self, date_range=None, resample=None, volume=False, **kwargs):
         """
-        Create a candlestick plot for an asset, with optional aggregation,
+        Visualize a candlestick plot for an asset, with optional aggregation,
         subset of the date range, and volume.
 
         Parameters:
@@ -553,7 +553,7 @@ class StockVisualizer:
 
     def plot_moving_averages(self, column, periods, type_, **kwargs):
         """
-        Add curve(s) for the moving average of a column for an asset.
+        Visualize the moving average(s) of a column for an asset.
 
         Parameters:
             - column: The name of the column to plot.
@@ -634,7 +634,7 @@ class AssetGroupVisualizer:
 
     def plot_boxplot(self, column, **kwargs):
         """
-        Generate box plots for a given column for all assets.
+        Visualize box plots for a given column for all assets.
 
         Parameters:
             - column: The name of the column to visualize.
@@ -653,7 +653,7 @@ class AssetGroupVisualizer:
 
     def plot_histogram(self, column, **kwargs):
         """
-        Generate the histogram of a given column for all assets.
+        Visualize the histogram of a given column for all assets.
 
         Parameters:
             - column: The name of the column to visualize.
@@ -681,7 +681,7 @@ class AssetGroupVisualizer:
 
     def plot_pairplot(self, **kwargs):
         """
-        Generate a seaborn pairplot for all assets.
+        Visualize a seaborn pairplot for all assets.
 
         Parameters:
             - kwargs: Keyword arguments to pass down to `sns.pairplot()`
@@ -702,7 +702,7 @@ class AssetGroupVisualizer:
 
     def plot_correlation_heatmap(self, pct_change=True, **kwargs):
         """
-        Generate a seaborn heatmap for correlations between all assets.
+        Visualize a heatmap for correlations between all assets.
 
         Parameters:
             - pct_change: Whether or not to show the correlations of the
@@ -751,7 +751,7 @@ class AssetGroupVisualizer:
 
     def plot_moving_averages(self, column, periods, type_, **kwargs):
         """
-        Add curve(s) for the moving average of a column for all assets.
+        Visualize the moving average(s) of a column for all assets.
 
         Parameters:
             - column: The name of the column to plot.
