@@ -716,12 +716,13 @@ class AssetGroupVisualizer:
         Returns:
             A seaborn pairplot
         """
+        pivot_table = create_pivot_table(
+            data=self.df,
+            columns=self.group_by,
+            column_values='close',
+        )
         return self.viz.plot_pairplot(
-            data=create_pivot_table(
-                data=self.df,
-                columns=self.group_by,
-                column_values='close',
-            ),
+            data=pivot_table,
             diag_kind='kde',
             **kwargs
         )
