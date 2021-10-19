@@ -433,21 +433,23 @@ class StockVisualizer:
             'low': 'min', 
             'volume': 'sum'
         }
-        custom_range = slice(
-            self.df.index.min(),
-            self.df.index.max()
-        )
-        plot_data = self.df.loc[
-            custom_range 
-            if not date_range else 
-            date_range
-        ]
+        if not date_range:
+            custom_range = slice(
+                self.df.index.min(),
+                self.df.index.max()
+            )
+        else:
+            custom_range = date_range
+        if resample:
+            plot_data = resample_df(
+                data=self.df.loc[custom_range],
+                resample=resample, 
+                agg_dict=agg_dict, 
+            )
+        else:
+            plot_data = self.df.loc[custom_range]
         return _plot_candlestick(
-            data=(
-                resample_df(plot_data, resample, agg_dict)
-                if resample else
-                plot_data
-            ),
+            data=plot_data,
             volume=volume,
             **kwargs
         )
