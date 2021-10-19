@@ -260,6 +260,7 @@ class Visualizer:
             )
         return ax
 
+    @set_ax_parameters
     def plot_area_between(self, data, data2, title, labels, figure):
         """
         Visualize the difference between assets.
