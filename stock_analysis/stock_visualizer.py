@@ -203,7 +203,7 @@ class Visualizer:
             **kwargs
         )
 
-    def plot_jointplot(self, data1, data2, column, **kwargs):
+    def plot_jointplot(self, data, data2, column, **kwargs):
         """
         Generate a seaborn jointplot for given column in asset compared to
         another asset.
@@ -217,7 +217,7 @@ class Visualizer:
             A seaborn jointplot
         """
         return sns.jointplot(
-            x=data1.loc[:,column],
+            x=data.loc[:,column],
             y=data2.loc[:,column],
             **kwargs
         )
