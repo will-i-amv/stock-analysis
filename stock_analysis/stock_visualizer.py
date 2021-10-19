@@ -588,11 +588,9 @@ class AssetGroupVisualizer:
         else:
             _, ax = self.viz.create_plot_layout()
         for asset_name in self.asset_names:
-            subset = self.df\
-                .query(f'{self.group_by} == "{asset_name}"')\
-                .loc[:,column]
+            grouped_df = self.group_df(col_value=asset_name)
             ax = self.viz.plot_curve(
-                data=subset,
+                data=grouped_df.loc[:,column],
                 ax=ax,
                 label=asset_name,
             )
@@ -671,15 +669,10 @@ class AssetGroupVisualizer:
             subplot_number=self.asset_number,
             col_number=2,
         )
-        for ax, asset_name in zip(
-            ax_layout.flatten(), 
-            self.asset_names
-        ):
-            subset = self.df\
-                .query(f'{self.group_by} == "{asset_name}"')\
-                .loc[:,column]
+        for ax, asset_name in zip(ax_layout.flatten(), self.asset_names):
+            grouped_df = self.group_df(col_value=asset_name)
             ax = self.viz.plot_moving_averages(
-                data=subset, 
+                data=grouped_df.loc[:,column], 
                 ax=ax,
                 periods=periods,
                 func=func, 
