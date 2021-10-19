@@ -564,6 +564,13 @@ class AssetGroupVisualizer:
     def asset_number(self):
         return len(self.asset_names)
 
+    def group_df(self, col_value):
+        return query_df(
+            df=self.df,
+            col_name=self.group_by,
+            col_value=col_value,
+        )
+
     def plot_curve(self, column, **kwargs):
         """
         Visualize the evolution over time of a column for all assets in group.
