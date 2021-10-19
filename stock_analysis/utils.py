@@ -4,6 +4,43 @@ import re
 import pandas as pd
 
 
+# Functions related to Dataframe validation and cleaning
+
+def _string_handler(item):
+    """
+    Static method for making a string out of an item if isn't it
+    already.
+
+    Parameters:
+        - item: The variable to make sure it is a string.
+
+    Returns:
+        The input as a string.
+    """
+    return (
+        str(item) 
+        if not isinstance(item, str) else 
+        item
+    )
+
+
+def _iter_handler(items):
+    """
+    Static method for making a list out of an item if it isn't a list or
+    tuple already.
+
+    Parameters:
+        - items: The variable to make sure it is a list.
+
+    Returns:
+        The input as a list or tuple.
+    """
+    return (
+        [items]
+        if not isinstance(items, (list, tuple)) else
+        items 
+    )
+
 def _sanitize_label(label):
     """
     Clean up a label by removing non-letter, non-space characters and
@@ -84,6 +121,9 @@ def validate_df(columns, instance_method=True):
     return method_wrapper
 
 
+# Functions related to Dataframe grouping
+
+
 def group_stocks(mapping):
     """
     Create a new dataframe with many assets and a new column indicating
@@ -132,42 +172,19 @@ def make_portfolio(df, date_level='date'):
         .groupby(level=date_level)\
         .sum()
 
-
-def _string_handler(item):
-    """
-    Static method for making a string out of an item if isn't it
-    already.
-
-    Parameters:
-        - item: The variable to make sure it is a string.
-
-    Returns:
-        The input as a string.
-    """
-    return (
-        str(item) 
-        if not isinstance(item, str) else 
-        item
+def create_pivot_table(data, columns, column_values):
+    return data.pivot_table(
+        index=data.index, 
+        columns=columns,
+        values=column_values, 
     )
 
 
-def _iter_handler(items):
-    """
-    Static method for making a list out of an item if it isn't a list or
-    tuple already.
+def query_df(df, col_name, col_value):
+    return df.query(f'{col_name} == "{col_value}"')
 
-    Parameters:
-        - items: The variable to make sure it is a list.
 
-    Returns:
-        The input as a list or tuple.
-    """
-    return (
-        [items]
-        if not isinstance(items, (list, tuple)) else
-        items 
-    )
-
+# Functions related to calculations over Dataframes
 
 def calc_correlation(data1, data2):
     return data1.corrwith(data2).loc[lambda x: x.notnull()]
@@ -184,6 +201,9 @@ def calc_moving_average(data, func, named_arg, period):
             **{named_arg: period}
         )\
         .mean()
+
+
+# Functions related  Dataframe resampling
 
 
 def resample_df(data, resample, agg_dict):
@@ -213,18 +233,6 @@ def resample_series(data, period):
     return data\
         .resample(period)\
         .sum()
-
-
-def create_pivot_table(data, columns, column_values):
-    return data.pivot_table(
-        index=data.index, 
-        columns=columns,
-        values=column_values, 
-    )
-
-
-def query_df(df, col_name, col_value):
-    return df.query(f'{col_name} == "{col_value}"')
 
 
 def resample_index(index, period='Q'):
