@@ -52,10 +52,12 @@ def _sanitize_label(label):
     Returns:
         The sanitized label.
     """
-    return re\
-        .sub(r'[^\w\s]', '', label)\
-        .lower()\
+    return (
+        re
+        .sub(r'[^\w\s]', '', label)
+        .lower()
         .replace(' ', '_')
+    )
 
 
 def sanitize_labels(method):
@@ -75,16 +77,14 @@ def sanitize_labels(method):
     def method_wrapper(self, *args, **kwargs):
         df = method(self, *args, **kwargs)
         renamed_index = _sanitize_label(df.index.name)
-        return df\
-            .reindex(
-                index=df.index.rename(renamed_index)
-            )\
-            .rename(
-                columns={
-                    column: _sanitize_label(column)
-                    for column in df.columns
-                }
-            )
+        return (
+            df
+            .reindex(index=df.index.rename(renamed_index))
+            .rename(columns={
+                column: _sanitize_label(column)
+                for column in df.columns
+            })
+        )
     return method_wrapper
 
 
@@ -152,10 +152,12 @@ def describe_group(df):
     Returns:
         The transpose of the grouped description statistics.
     """
-    return df\
-        .groupby('name')\
-        .describe()\
+    return (
+        df
+        .groupby('name')
+        .describe()
         .T
+    )
 
 
 @validate_df(columns=set(), instance_method=False)
@@ -166,9 +168,11 @@ def make_portfolio(df, date_level='date'):
     Note: the caller is responsible for making sure the dates line up across
     assets and handling when they don't.
     """
-    return df\
-        .groupby(level=date_level)\
+    return (
+        df
+        .groupby(level=date_level)
         .sum()
+    )
 
 def create_pivot_table(data, columns, column_values):
     return data.pivot_table(
@@ -185,7 +189,10 @@ def query_df(df, col_name, col_value):
 # Functions related to calculations over Dataframes
 
 def calc_correlation(data1, data2):
-    return data1.corrwith(data2).loc[lambda x: x.notnull()]
+    return (
+        data1.corrwith(data2).
+        loc[lambda x: x.notnull()]
+    )
 
 
 def calc_diff(data, column1='open', column2='close'):
@@ -193,12 +200,14 @@ def calc_diff(data, column1='open', column2='close'):
 
 
 def calc_moving_average(data, func, named_arg, period):
-    return data\
+    return (
+        data
         .pipe(
             func=func, 
             **{named_arg: period}
-        )\
+        )
         .mean()
+    )
 
 
 # Functions related  Dataframe resampling
@@ -216,19 +225,23 @@ def resample_df(data, resample, agg_dict):
     Returns:
         The resampled dataframe
     """
-    return data\
-            .resample(resample)\
-            .agg({
-                    col: agg_dict[col]
-                    for col in data.columns
-                    if col in agg_dict
-            })
+    return (
+        data
+        .resample(resample)
+        .agg({
+                col: agg_dict[col]
+                for col in data.columns
+                if col in agg_dict
+        })
+    )
 
 
 def resample_series(data, period):
-    return data\
-        .resample(period)\
+    return (
+        data
+        .resample(period)
         .sum()
+    )
 
 
 def resample_index(index, period='Q'):
