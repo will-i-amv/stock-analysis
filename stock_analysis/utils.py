@@ -80,10 +80,10 @@ def sanitize_labels(method):
                 index=df.index.rename(renamed_index)
             )\
             .rename(
-                columns=dict(
-                    (column, _sanitize_label(column)) 
+                columns={
+                    column: _sanitize_label(column)
                     for column in df.columns
-                ),
+                }
             )
     return method_wrapper
 
@@ -135,12 +135,10 @@ def group_stocks(mapping):
     Returns:
         A new `pandas.DataFrame` object
     """
-    return pd.concat(
-        list(
-            asset_df.assign(name=asset_name)
-            for asset_name, asset_df in mapping.items()
-        )
-    )
+    return pd.concat([
+        asset_df.assign(name=asset_name)
+        for asset_name, asset_df in mapping.items()
+    ])
 
 
 @validate_df(columns={'name'}, instance_method=False)
@@ -220,13 +218,11 @@ def resample_df(data, resample, agg_dict):
     """
     return data\
             .resample(resample)\
-            .agg(
-                dict(
-                    (col, agg_dict[col])
+            .agg({
+                    col: agg_dict[col]
                     for col in data.columns
                     if col in agg_dict
-                )
-            )
+            })
 
 
 def resample_series(data, period):
