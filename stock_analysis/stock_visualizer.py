@@ -631,17 +631,15 @@ class AssetGroupVisualizer:
             subplot_number=self.asset_number,
             col_number=2,
         )
-        for ax, (name, data) in zip(
-            ax_layout.flatten(), 
-            self.grouped_df
-        ):
+        for ax, asset_name in zip(ax_layout.flatten(), self.asset_names):
+            grouped_df = self.group_df(col_value=asset_name)
             ax = self.viz.plot_histogram(
-                data=data,
-                x=data.loc[:,column], 
+                data=grouped_df,
+                x=grouped_df.loc[:,column], 
                 ax=ax,
                 kde=True, 
             )
-            ax.set_title(f'{name} - {column}')
+            ax.set_title(f'{asset_name}')
         return ax_layout
 
     def plot_moving_averages(self, column, periods, type_, **kwargs):
@@ -693,15 +691,13 @@ class AssetGroupVisualizer:
             subplot_number=2*self.asset_number,
             col_number=2,
         )
-        for ax_row, (name, data) in zip(
-            ax_layout, 
-            self.grouped_df
-        ):
+        for ax_row, asset_name in zip(ax_layout, self.asset_names):
+            grouped_df = self.group_df(col_value=asset_name)
             ax = self.viz.plot_difference(
-                data=data,
+                data=grouped_df,
                 axes=ax_row,
                 period='1M',
-                label=name,
+                label=asset_name,
             )
         plt.tight_layout()
         return ax
