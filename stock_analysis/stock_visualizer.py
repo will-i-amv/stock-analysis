@@ -97,7 +97,6 @@ class Visualizer:
             raise ValueError(
                 'If providing only `x` or `y`, it must be a single value.'
             )
-        ax.legend()
         return ax
 
     def plot_shaded_region(self, ax, x=tuple(), y=tuple(), **kwargs):
@@ -582,7 +581,6 @@ class AssetGroupVisualizer:
                 ax=ax,
                 label=asset_name,
             )
-        ax.legend()
         return ax
 
     def plot_boxplot(self, column, **kwargs):
