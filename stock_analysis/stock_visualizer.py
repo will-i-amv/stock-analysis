@@ -242,6 +242,14 @@ class Visualizer:
             vmax=1, 
             **kwargs
         )
+
+    def plot_candlestick(self, data, volume=False, **kwargs):
+        mpf.plot(
+            data=data, 
+            type='candle', 
+            volume=volume, 
+            **kwargs
+        )
     
     def plot_moving_averages(self, data, ax, periods, func, named_arg, **kwargs):
         """
@@ -419,13 +427,6 @@ class StockVisualizer:
         Note: `mplfinance.plot()` doesn't return anything. 
               To save your plot, pass in `savefig=file.png`.
         """
-        def _plot_candlestick(data, volume=False, **kwargs):
-            mpf.plot(
-                data=data, 
-                type='candle', 
-                volume=volume, 
-                **kwargs
-            )
         agg_dict = {
             'open': 'first', 
             'close': 'last',
@@ -448,7 +449,7 @@ class StockVisualizer:
             )
         else:
             plot_data = self.df.loc[custom_range]
-        return _plot_candlestick(
+        return self.viz.plot_candlestick(
             data=plot_data,
             volume=volume,
             **kwargs
