@@ -221,3 +221,15 @@ def create_pivot_table(data, columns, column_values):
         columns=columns,
         values=column_values, 
     )
+
+
+def query_df(df, col_name, col_value):
+    return df.query(f'{col_name} == "{col_value}"')
+
+
+def resample_index(index, period='Q'):
+    return pd.date_range(
+        start=index.min(),
+        end=index.max(),
+        freq=period,
+    )
