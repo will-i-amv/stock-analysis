@@ -11,6 +11,10 @@ from .utils import \
     resample_df, resample_series, create_pivot_table
 
 
+def query_df(df, col_name, col_value):
+    return df.query(f'{col_name} == "{col_value}"')
+
+
 def resample_index(index, period='Q'):
     return pd.date_range(
         start=index.min(),
