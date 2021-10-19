@@ -744,12 +744,11 @@ class AssetGroupVisualizer:
             columns=self.group_by,
             column_values='close',
         )
-        pivot_table = (
-            _pivot_table.pct_change()
-            if pct_change else
-            _pivot_table
-        )
+        if pct_change:
+            pivot_table = _pivot_table.pct_change().corr()
+        else:
+            pivot_table = _pivot_table.corr()
         return self.viz.plot_heatmap(
-            data=pivot_table.corr(),
+            data=pivot_table,
             **kwargs
         )
