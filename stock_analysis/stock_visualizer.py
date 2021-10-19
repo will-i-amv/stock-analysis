@@ -289,7 +289,13 @@ class Visualizer:
                 color=color, 
                 label=label,
             )
+        plt.legend(
+            bbox_to_anchor=(0.67, -0.1), 
+            framealpha=0, 
+            ncol=2
+        )
         plt.suptitle(title)
+        plt.tight_layout()
         return figure.axes[0]
 
     def plot_difference(self, data, period, axes, **kwargs):
