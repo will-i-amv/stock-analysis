@@ -560,6 +560,10 @@ class AssetGroupVisualizer:
     def asset_names(self):
         return self.df.loc[:,self.group_by].unique()
 
+    @property
+    def asset_number(self):
+        return len(self.asset_names)
+
     def plot_curve(self, column, **kwargs):
         """
         Visualize the evolution over time of a column for all assets in group.
@@ -619,7 +623,7 @@ class AssetGroupVisualizer:
             A matplotlib `Axes` object.
         """
         _, ax_layout = self.viz.create_plot_layout(
-            subplot_number=len(self.asset_names),
+            subplot_number=self.asset_number,
             col_number=2,
         )
         for ax, (name, data) in zip(
@@ -657,7 +661,7 @@ class AssetGroupVisualizer:
             func=pd.DataFrame.ewm
             named_arg='span'
         _, ax_layout = self.viz.create_plot_layout(
-            subplot_number=len(self.asset_names),
+            subplot_number=self.asset_number,
             col_number=2,
         )
         for ax, asset_name in zip(
@@ -686,7 +690,7 @@ class AssetGroupVisualizer:
             A matplotlib `Axes` object.
         """
         _, ax_layout = self.viz.create_plot_layout(
-            subplot_number=2*len(self.asset_names),
+            subplot_number=2*self.asset_number,
             col_number=2,
         )
         for ax_row, (name, data) in zip(
