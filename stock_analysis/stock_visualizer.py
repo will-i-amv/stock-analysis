@@ -260,7 +260,7 @@ class Visualizer:
             )
         return ax
 
-    def plot_area_between(self, y1, y2, title, label_higher, label_lower, figsize, legend_x):
+    def plot_area_between(self, y1, y2, title, label_higher, label_lower, figure):
         """
         Visualize the difference between assets.
 
@@ -270,35 +270,27 @@ class Visualizer:
             - label_higher: String label for when y2 is higher than y1.
             - label_lower: String label for when y2 is lower than y1.
             - figsize: A tuple of (width, height) for the plot dimensions.
-            - legend_x: Where to place the legend below the plot.
 
         Returns:
             A matplotlib `Axes` object.
         """
-        fig = plt.figure(figsize=figsize)
         is_higher = y2 - y1 > 0
-        zipped = zip(
+        for exclude_mask, color, label in zip(
             (is_higher, np.invert(is_higher)), # filters
             ('g', 'r'), # colors
             (label_higher, label_lower), # labels
-        )
-        for exclude_mask, color, label in zipped:
+        ):
             plt.fill_between(
                 x=y2.index, 
                 y1=y1, 
                 y2=y2, 
-                figure=fig,
+                figure=figure,
                 where=exclude_mask, 
                 color=color, 
-                label=label
+                label=label,
             )
-        plt.legend(
-            bbox_to_anchor=(legend_x, -0.1), 
-            framealpha=0, 
-            ncol=2
-        )
         plt.suptitle(title)
-        return fig.axes[0]    
+        return figure.axes[0]
 
     def plot_difference(self, data, period, axes, **kwargs):
         daily_effect = calc_diff(data)
@@ -451,7 +443,7 @@ class StockVisualizer:
             label='Asset'
         )
 
-    def plot_between_open_close(self, figsize=(10, 4)):
+    def plot_between_open_close(self):
         """
         Visualize the daily change in price from open to close.
 
@@ -461,19 +453,18 @@ class StockVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        ax = self.viz.plot_area_between(
+        fig, _ = self.viz.create_plot_layout()
+        return self.viz.plot_area_between(
             y1=self.df.open, 
             y2=self.df.close, 
-            figsize=figsize,
-            legend_x=0.67, 
+            figure=fig,
             title='Daily price change (open to close)',
             label_higher='Price rose', 
             label_lower='Price fell'
         )
-        ax.set_ylabel('price')
         return ax
 
-    def plot_between_closes(self, other_df, figsize=(10, 4)):
+    def plot_between_closes(self, other_df):
         """
         Visualize the difference in closing price between assets.
 
@@ -484,17 +475,15 @@ class StockVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        ax = self.viz.plot_area_between(
+        fig, _ = self.viz.create_plot_layout()
+        return self.viz.plot_area_between(
             y1=other_df.close, 
             y2=self.df.close, 
-            figsize=figsize, 
-            legend_x=0.7,
+            figure=fig, 
             title='Differential between asset closing price (this - other)',
             label_higher='Asset is higher', 
             label_lower='Asset is lower'
         )
-        ax.set_ylabel('price')
-        return ax
 
     def plot_moving_averages(self, column, periods, type_, **kwargs):
         """
