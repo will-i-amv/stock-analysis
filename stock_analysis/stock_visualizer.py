@@ -569,7 +569,10 @@ class AssetGroupVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        _, ax = self.viz.create_plot_layout()
+        if 'ax' in kwargs:
+            ax = kwargs.pop('ax')
+        else:
+            _, ax = self.viz.create_plot_layout()
         for asset_name in self.asset_names:
             subset = self.df\
                 .query(f'{self.group_by} == "{asset_name}"')\
