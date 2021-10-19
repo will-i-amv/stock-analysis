@@ -341,16 +341,16 @@ class Visualizer:
         return ax
 
     @set_ax_parameters
-    def plot_area_between(self, data, data2, title, labels, figure):
+    def plot_area_between(self, data, data2, figure, title, label_higher, label_lower):
         """
         Method that fills the difference between 2 Series().
 
         Parameters:
             - data, data2: Data to be plotted with fill between data2 - data.
             - title: The title for the plot.
+            - figure: The matplotlib `Figure` object to plot with.
             - label_higher: String label for when data2 is higher than data.
             - label_lower: String label for when data2 is lower than data.
-            - figsize: A tuple of (width, height) for the plot dimensions.
 
         Returns:
             A matplotlib `Axes` object.
@@ -359,7 +359,7 @@ class Visualizer:
         for exclude_mask, color, label in zip(
             (is_higher, np.invert(is_higher)), # filters
             ('g', 'r'), # colors
-            labels, # labels
+            (label_higher, label_lower), # labels
         ):
             plt.fill_between(
                 x=data.index, 
@@ -512,7 +512,8 @@ class StockVisualizer:
             data2=self.df.close, 
             figure=fig,
             title='Daily price change (open to close)',
-            labels=['Price rose', 'Price fell'],
+            label_higher='Price rose',
+            label_lower='Price fell',
         )
 
     def plot_between_closes(self, other_df):
@@ -531,7 +532,8 @@ class StockVisualizer:
             data2=self.df.close, 
             figure=fig, 
             title='Differential between asset closing price (this - other)',
-            labels=['Asset is higher', 'Asset is lower']
+            label_higher='Price rose',
+            label_lower='Price fell',
         )
 
     def plot_after_hours_trades(self):
