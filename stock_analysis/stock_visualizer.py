@@ -68,6 +68,52 @@ class Visualizer:
     def __init__(self):
         pass
 
+    def create_plot_layout(self, subplot_number=1, col_number=1):
+        """
+        Helper method for getting an autolayout of subplots (1 per group).
+
+        Returns:
+            The matplotlib `Figure` and `Axes` objects to plot with.
+        """
+        row_number = math.ceil(subplot_number / col_number)
+        fig, axes = plt.subplots(
+            nrows=row_number, 
+            ncols=col_number, 
+            figsize=(15, 5*row_number)
+        )
+        if subplot_number == 1:
+            return fig, axes
+        else:
+            return remove_excess_axes(fig, axes, subplot_number)
+
+    def plot_shaded_region(self, ax, x=tuple(), y=tuple(), **kwargs):
+        """
+        Static method for shading a region on a plot.
+
+        Parameters:
+            - ax: The matplotlib `Axes` object to add the shaded region to.
+            - x: Tuple with the `xmin` and `xmax` bounds for the rectangle
+                 drawn vertically.
+            - y: Tuple with the `ymin` and `ymax` bounds for the rectangle
+                 drawn horizontally.
+            - kwargs: Additional keyword arguments to pass to the plotting
+                      function.
+
+        Returns:
+            The matplotlib `Axes` object passed in.
+        """
+        if not x and not y:
+            raise ValueError(
+                'You must provide an x or a y min/max tuple at a minimum.'
+            )
+        elif x and y:
+            raise ValueError('You can only provide `x` or `y`.')
+        elif x and not y:
+            ax.axvspan(*x, **kwargs) # Vertical span
+        elif not x and y:
+            ax.axhspan(*y, **kwargs) # Horizontal span
+        return ax
+
     def plot_reference_line(self, ax, x=None, y=None, **kwargs):
         """
         Method for adding reference lines to plots.
@@ -101,34 +147,6 @@ class Visualizer:
             raise ValueError(
                 'If providing only `x` or `y`, it must be a single value.'
             )
-        return ax
-
-    def plot_shaded_region(self, ax, x=tuple(), y=tuple(), **kwargs):
-        """
-        Static method for shading a region on a plot.
-
-        Parameters:
-            - ax: The matplotlib `Axes` object to add the shaded region to.
-            - x: Tuple with the `xmin` and `xmax` bounds for the rectangle
-                 drawn vertically.
-            - y: Tuple with the `ymin` and `ymax` bounds for the rectangle
-                 drawn horizontally.
-            - kwargs: Additional keyword arguments to pass to the plotting
-                      function.
-
-        Returns:
-            The matplotlib `Axes` object passed in.
-        """
-        if not x and not y:
-            raise ValueError(
-                'You must provide an x or a y min/max tuple at a minimum.'
-            )
-        elif x and y:
-            raise ValueError('You can only provide `x` or `y`.')
-        elif x and not y:
-            ax.axvspan(*x, **kwargs) # Vertical span
-        elif not x and y:
-            ax.axhspan(*y, **kwargs) # Horizontal span
         return ax
 
     @set_ax_parameters
@@ -359,24 +377,6 @@ class Visualizer:
             )
         return ax
 
-    def create_plot_layout(self, subplot_number=1, col_number=1):
-        """
-        Helper method for getting an autolayout of subplots (1 per group).
-
-        Returns:
-            The matplotlib `Figure` and `Axes` objects to plot with.
-        """
-        row_number = math.ceil(subplot_number / col_number)
-        fig, axes = plt.subplots(
-            nrows=row_number, 
-            ncols=col_number, 
-            figsize=(15, 5*row_number)
-        )
-        if subplot_number == 1:
-            return fig, axes
-        else:
-            return remove_excess_axes(fig, axes, subplot_number)
-
 
 class StockVisualizer:
     """Class for visualizing a single asset."""
@@ -458,21 +458,6 @@ class StockVisualizer:
             **kwargs
         )
 
-    def plot_after_hours_trades(self):
-        """
-        Visualize the effect of after-hours trading on this asset.
-
-        Returns:
-            A matplotlib `Axes` object.
-        """
-        _, ax_row = self.viz.create_plot_layout(col_number=2)
-        return self.viz.plot_difference(
-            data=self.df,
-            axes=ax_row,
-            period='1M',
-            label='Asset'
-        )
-
     def plot_between_open_close(self):
         """
         Visualize the daily change in price from open to close.
@@ -510,6 +495,21 @@ class StockVisualizer:
             figure=fig, 
             title='Differential between asset closing price (this - other)',
             labels=['Asset is higher', 'Asset is lower']
+        )
+
+    def plot_after_hours_trades(self):
+        """
+        Visualize the effect of after-hours trading on this asset.
+
+        Returns:
+            A matplotlib `Axes` object.
+        """
+        _, ax_row = self.viz.create_plot_layout(col_number=2)
+        return self.viz.plot_difference(
+            data=self.df,
+            axes=ax_row,
+            period='1M',
+            label='Asset'
         )
 
     def plot_moving_averages(self, column, periods, type_, **kwargs):
@@ -638,66 +638,6 @@ class AssetGroupVisualizer:
             ax.set_title(f'{asset_name}')
         return ax_layout
 
-    def plot_moving_averages(self, column, periods, type_, **kwargs):
-        """
-        Add curve(s) for the exponentially smoothed moving average of a column.
-
-        Parameters:
-            - ax: The matplotlib `Axes` object to add the curves to.
-            - column: The name of the column to plot.
-            - periods: The span or list of spans for smoothing,
-                        like 20 for 20-day periods.
-            - kwargs: Additional arguments to pass down 
-                        to the plotting function.
-
-        Returns:
-            A matplotlib `Axes` object.
-        """
-        if type_ == 'MA':
-            func=pd.DataFrame.resample
-            named_arg='rule'
-        if type_ == 'EWMA':
-            func=pd.DataFrame.ewm
-            named_arg='span'
-        _, ax_layout = self.viz.create_plot_layout(
-            subplot_number=self.asset_number,
-            col_number=2,
-        )
-        for ax, asset_name in zip(ax_layout.flatten(), self.asset_names):
-            grouped_df = self.group_df(col_value=asset_name)
-            ax = self.viz.plot_moving_averages(
-                data=grouped_df.loc[:,column], 
-                ax=ax,
-                periods=periods,
-                func=func, 
-                named_arg=named_arg, 
-                label=asset_name,
-            )
-        plt.tight_layout()
-        return ax
-
-    def plot_after_hours_trades(self):
-        """
-        Visualize the effect of after-hours trading on this asset group.
-
-        Returns:
-            A matplotlib `Axes` object.
-        """
-        _, ax_layout = self.viz.create_plot_layout(
-            subplot_number=2*self.asset_number,
-            col_number=2,
-        )
-        for ax_row, asset_name in zip(ax_layout, self.asset_names):
-            grouped_df = self.group_df(col_value=asset_name)
-            ax = self.viz.plot_difference(
-                data=grouped_df,
-                axes=ax_row,
-                period='1M',
-                label=asset_name,
-            )
-        plt.tight_layout()
-        return ax
-
     def plot_pairplot(self, **kwargs):
         """
         Generate a seaborn pairplot for this asset group.
@@ -745,3 +685,63 @@ class AssetGroupVisualizer:
             data=pivot_table,
             **kwargs
         )
+
+    def plot_after_hours_trades(self):
+        """
+        Visualize the effect of after-hours trading on this asset group.
+
+        Returns:
+            A matplotlib `Axes` object.
+        """
+        _, ax_layout = self.viz.create_plot_layout(
+            subplot_number=2*self.asset_number,
+            col_number=2,
+        )
+        for ax_row, asset_name in zip(ax_layout, self.asset_names):
+            grouped_df = self.group_df(col_value=asset_name)
+            ax = self.viz.plot_difference(
+                data=grouped_df,
+                axes=ax_row,
+                period='1M',
+                label=asset_name,
+            )
+        plt.tight_layout()
+        return ax
+
+    def plot_moving_averages(self, column, periods, type_, **kwargs):
+        """
+        Add curve(s) for the exponentially smoothed moving average of a column.
+
+        Parameters:
+            - ax: The matplotlib `Axes` object to add the curves to.
+            - column: The name of the column to plot.
+            - periods: The span or list of spans for smoothing,
+                        like 20 for 20-day periods.
+            - kwargs: Additional arguments to pass down 
+                        to the plotting function.
+
+        Returns:
+            A matplotlib `Axes` object.
+        """
+        if type_ == 'MA':
+            func=pd.DataFrame.resample
+            named_arg='rule'
+        if type_ == 'EWMA':
+            func=pd.DataFrame.ewm
+            named_arg='span'
+        _, ax_layout = self.viz.create_plot_layout(
+            subplot_number=self.asset_number,
+            col_number=2,
+        )
+        for ax, asset_name in zip(ax_layout.flatten(), self.asset_names):
+            grouped_df = self.group_df(col_value=asset_name)
+            ax = self.viz.plot_moving_averages(
+                data=grouped_df.loc[:,column], 
+                ax=ax,
+                periods=periods,
+                func=func, 
+                named_arg=named_arg, 
+                label=asset_name,
+            )
+        plt.tight_layout()
+        return ax
