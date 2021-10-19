@@ -647,42 +647,33 @@ class AssetGroupVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        def _plot_moving_averages(column, periods, func, named_arg, **kwargs):
-            _, ax_layout = self.viz.create_plot_layout(
-                subplot_number=len(self.asset_names),
-                col_number=2,
-            )
-            for ax, asset_name in zip(
-                ax_layout.flatten(), 
-                self.asset_names
-            ):
-                subset = self.df\
-                    .query(f'{self.group_by} == "{asset_name}"')\
-                    .loc[:,column]
-                ax = self.viz.plot_moving_averages(
-                    data=subset, 
-                    ax=ax,
-                    periods=periods,
-                    func=func, 
-                    named_arg=named_arg, 
-                    label=asset_name,
-                )
-            plt.tight_layout()
-            return ax
-        
         if type_ == 'MA':
             func=pd.DataFrame.resample
             named_arg='rule'
         if type_ == 'EWMA':
             func=pd.DataFrame.ewm
             named_arg='span'
-        return _plot_moving_averages(
-            column=column,
-            periods=periods, 
-            func=func, 
-            named_arg=named_arg, 
-            **kwargs,
+        _, ax_layout = self.viz.create_plot_layout(
+            subplot_number=len(self.asset_names),
+            col_number=2,
         )
+        for ax, asset_name in zip(
+            ax_layout.flatten(), 
+            self.asset_names
+        ):
+            subset = self.df\
+                .query(f'{self.group_by} == "{asset_name}"')\
+                .loc[:,column]
+            ax = self.viz.plot_moving_averages(
+                data=subset, 
+                ax=ax,
+                periods=periods,
+                func=func, 
+                named_arg=named_arg, 
+                label=asset_name,
+            )
+        plt.tight_layout()
+        return ax
 
     def plot_after_hours_trades(self):
         """
