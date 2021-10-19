@@ -429,20 +429,20 @@ class StockVisualizer:
         self.df = df
         self.viz = Visualizer()
 
-    def plot_correlation_heatmap(self, other):
+    def plot_correlation_heatmap(self, other_df):
         """
         Plot the correlations between this asset and
         another one with a heatmap.
 
         Parameters:
-            - other: The other asset's DataFrame().
+            - other_df: The other asset's DataFrame().
 
         Returns:
             A seaborn heatmap
         """
         correlations = calc_correlation(
             data1=self.df.pct_change(),
-            data2=other.pct_change(),
+            data2=other_df.pct_change(),
         )
         size = len(correlations)
         corr_matrix = np.zeros((size, size),  float)
