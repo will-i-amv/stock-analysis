@@ -553,10 +553,6 @@ class AssetGroupVisualizer:
         self.viz = Visualizer()
 
     @property
-    def grouped_df(self):
-        return self.df.groupby(self.group_by)
-
-    @property
     def asset_names(self):
         return self.df.loc[:,self.group_by].unique()
 
