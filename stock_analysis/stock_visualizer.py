@@ -461,7 +461,7 @@ class StockVisualizer:
         Returns:
             A matplotlib `Axes` object.
         """
-        _, ax_row = plt.subplots(1, 2, figsize=(15, 3))
+        _, ax_row = self.viz.create_plot_layout(col_number=2)
         return self.viz.plot_difference(
             data=self.df,
             axes=ax_row,
@@ -487,7 +487,6 @@ class StockVisualizer:
             title='Daily price change (open to close)',
             labels=['Price rose', 'Price fell'],
         )
-        return ax
 
     def plot_between_closes(self, other_df):
         """
@@ -529,10 +528,9 @@ class StockVisualizer:
             named_arg='rule'
         if type_ == 'EWMA':
             func=pd.DataFrame.ewm
-            named_arg='span'
-        
-        _, ax = plt.subplots(1, 1)
-        ax = self.viz.plot_moving_averages(
+            named_arg='span'        
+        _, ax = self.viz.create_plot_layout()
+        return self.viz.plot_moving_averages(
             data=self.df.loc[:,column], 
             ax=ax,
             periods=periods,
@@ -540,7 +538,6 @@ class StockVisualizer:
             named_arg=named_arg, 
             **kwargs
         )
-        return ax
 
 
 class AssetGroupVisualizer:
