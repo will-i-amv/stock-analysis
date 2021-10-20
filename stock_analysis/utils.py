@@ -1,5 +1,5 @@
 """Utility functions for stock analysis."""
-from functools import wraps
+import functools
 import re
 import pandas as pd
 
@@ -40,6 +40,7 @@ def iter_handler(items):
         items 
     )
 
+
 def _sanitize_label(label):
     """
     Clean up a label by removing non-letter, non-space characters 
@@ -72,7 +73,7 @@ def sanitize_labels(method):
     Returns:
         A decorated method or function.
     """
-    @wraps(method)
+    @functools.wraps(method)
     def method_wrapper(self, *args, **kwargs):
         df = method(self, *args, **kwargs)
         renamed_index = _sanitize_label(df.index.name)
@@ -104,7 +105,7 @@ def validate_df(columns, instance_method=True):
         A decorated method or function.
     """
     def method_wrapper(method):
-        @wraps(method)
+        @functools.wraps(method)
         def validate_wrapper(self, *args, **kwargs):
             df = (self, *args)[0 if not instance_method else 1]
             if not isinstance(df, pd.DataFrame):
@@ -172,6 +173,7 @@ def make_portfolio(df, date_level='date'):
         .groupby(level=date_level)
         .sum()
     )
+
 
 def create_pivot_table(data, col_names, col_values):
     """
