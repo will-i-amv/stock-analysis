@@ -9,8 +9,7 @@ import pandas as pd
 
 def string_handler(item):
     """
-    Function for making a string out of an item if isn't it
-    already.
+    Create a string out of an item if isn't it already.
 
     Parameters:
         - item: The variable to make sure it is a string.
@@ -27,8 +26,7 @@ def string_handler(item):
 
 def iter_handler(items):
     """
-    Function for making a list out of an item if it isn't a list or
-    tuple already.
+    Create a list out of an item if it isn't a list or tuple already.
 
     Parameters:
         - items: The variable to make sure it is a list.
@@ -44,8 +42,8 @@ def iter_handler(items):
 
 def _sanitize_label(label):
     """
-    Function that cleans up a label by removing non-letter, non-space 
-    characters and putting in all lowercase with underscores replacing spaces.
+    Clean up a label by removing non-letter, non-space characters 
+    and putting in all lowercase with underscores replacing spaces.
 
     Parameters:
         - label: The text you want to fix.
@@ -127,8 +125,8 @@ def validate_df(columns, instance_method=True):
 
 def group_stocks(mapping):
     """
-    Function that creates a new dataframe with many assets and 
-    a new column indicating the asset that row's data belongs to.
+    Create a new dataframe with many assets and a new column 
+    indicating the asset that row's data belongs to.
 
     Parameters:
         - mapping: A key-value mapping of the form {asset_name: asset_df}
@@ -248,8 +246,7 @@ def calc_diff(data, column1='open', column2='close'):
 
 def calc_moving_average(data, func, named_arg, period):
     """
-    Function that calculates the moving average of a Series()
-    for a given period.
+    Calculate the moving average of a Series() for a given period.
 
     Parameters:
         - data: The base Series()
