@@ -278,10 +278,10 @@ class AssetGroupAnalyzer:
         Create a dictionary mapping each group to its analyzer,
         taking advantage of composition instead of inheritance.
         """
-        return dict(
-            (group, StockAnalyzer(data))
+        return {
+            group: StockAnalyzer(data)
             for group, data in self.df.groupby(self.groupby_criteria)
-        )
+        }
 
     def analyze(self, function_name, **kwargs):
         """
@@ -301,10 +301,7 @@ class AssetGroupAnalyzer:
             )
         if not kwargs:
             kwargs = dict()
-        return dict(
-            (
-                group, 
-                getattr(analyzer, function_name)(**kwargs)
-            )
+        return {
+            group: getattr(analyzer, function_name)(**kwargs)
             for group, analyzer in self.analyzers.items()
-        )
+        }
