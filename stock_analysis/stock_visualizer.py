@@ -441,7 +441,7 @@ class StockVisualizer:
             A seaborn heatmap
         """
         correlations = calc_correlation(
-            data1=self.df.pct_change(),
+            data=self.df.pct_change(),
             data2=other_df.pct_change(),
         )
         size = len(correlations)
@@ -488,7 +488,7 @@ class StockVisualizer:
         if resample:
             plot_data = resample_df(
                 data=self.df.loc[custom_range],
-                resample=resample, 
+                period=resample, 
                 agg_dict=agg_dict, 
             )
         else:
@@ -602,7 +602,7 @@ class AssetGroupVisualizer:
 
     def group_df(self, col_value):
         return query_df(
-            df=self.df,
+            data=self.df,
             col_name=self.group_by,
             col_value=col_value,
         )
@@ -691,8 +691,8 @@ class AssetGroupVisualizer:
         """
         pivot_table = create_pivot_table(
             data=self.df,
-            columns=self.group_by,
-            column_values='close',
+            col_names=self.group_by,
+            col_values='close',
         )
         return self.viz.plot_pairplot(
             data=pivot_table,
@@ -715,8 +715,8 @@ class AssetGroupVisualizer:
         """
         _pivot_table = create_pivot_table(
             data=self.df,
-            columns=self.group_by,
-            column_values='close',
+            col_names=self.group_by,
+            col_values='close',
         )
         if pct_change:
             pivot_table = _pivot_table.pct_change().corr()
