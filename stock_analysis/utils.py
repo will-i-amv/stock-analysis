@@ -173,7 +173,7 @@ def make_portfolio(df, date_level='date'):
         .sum()
     )
 
-def create_pivot_table(data, columns, column_values):
+def create_pivot_table(data, col_names, col_values):
     """
     Create a new subset of a given DataFrame() by creating 
     a pivot table from it.
@@ -188,42 +188,42 @@ def create_pivot_table(data, columns, column_values):
     """
     return data.pivot_table(
         index=data.index, 
-        columns=columns,
-        values=column_values, 
+        columns=col_names,
+        values=col_values, 
     )
 
 
-def query_df(df, col_name, col_value):
+def query_df(data, col_name, col_value):
     """
     Create a new subset of a given DataFrame() by querying it.
 
     Parameters:
-        - df: The base DataFrame().
+        - data: The base DataFrame().
         - col_name: The name of the column.
         - col_vale: The values to match in that column.
 
     Returns:
         A DataFrame() object.
     """
-    return df.query(f'{col_name} == "{col_value}"')
+    return data.query(f'{col_name} == "{col_value}"')
 
 
 # Functions related to calculations over Dataframes
 
 
-def calc_correlation(data1, data2):
+def calc_correlation(data, data2):
     """
     Calculate the correlations between 2 DataFrames().
 
     Parameters:
-        - data1: The first dataframe.
+        - data: The first dataframe.
         - data2: The second dataframe.
 
     Returns:
         A Series() object.
     """
     return (
-        data1.corrwith(data2).
+        data.corrwith(data2).
         loc[lambda x: x.notnull()]
     )
 
@@ -272,13 +272,13 @@ def calc_moving_average(data, func, named_arg, period):
 # Functions related to Dataframe resampling
 
 
-def resample_df(data, resample, agg_dict):
+def resample_df(data, period, agg_dict):
     """
     Resample a DataFrame() and run functions on columns specified in a dict.
 
     Parameters:
         - df: DataFrame() to be resampled.
-        - resample: The period to use for resampling the data.
+        - period: The period to use for resampling the data.
         - agg_dict: A dictionary that specifies the operations to be done
                     for each column after resampling.
     
@@ -287,7 +287,7 @@ def resample_df(data, resample, agg_dict):
     """
     return (
         data
-        .resample(resample)
+        .resample(period)
         .agg({
                 col: agg_dict[col]
                 for col in data.columns
