@@ -6,9 +6,10 @@ import pandas as pd
 
 # Functions related to Dataframe validation and cleaning
 
-def _string_handler(item):
+
+def string_handler(item):
     """
-    Static method for making a string out of an item if isn't it
+    Function for making a string out of an item if isn't it
     already.
 
     Parameters:
@@ -24,9 +25,9 @@ def _string_handler(item):
     )
 
 
-def _iter_handler(items):
+def iter_handler(items):
     """
-    Static method for making a list out of an item if it isn't a list or
+    Function for making a list out of an item if it isn't a list or
     tuple already.
 
     Parameters:
@@ -43,8 +44,8 @@ def _iter_handler(items):
 
 def _sanitize_label(label):
     """
-    Clean up a label by removing non-letter, non-space characters and
-    putting in all lowercase with underscores replacing spaces.
+    Function that cleans up a label by removing non-letter, non-space 
+    characters and putting in all lowercase with underscores replacing spaces.
 
     Parameters:
         - label: The text you want to fix.
@@ -126,8 +127,8 @@ def validate_df(columns, instance_method=True):
 
 def group_stocks(mapping):
     """
-    Create a new dataframe with many assets and a new column indicating
-    the asset that row's data belongs to.
+    Function that creates a new dataframe with many assets and 
+    a new column indicating the asset that row's data belongs to.
 
     Parameters:
         - mapping: A key-value mapping of the form {asset_name: asset_df}
@@ -175,6 +176,18 @@ def make_portfolio(df, date_level='date'):
     )
 
 def create_pivot_table(data, columns, column_values):
+    """
+    Create a new subset of a given DataFrame() by creating 
+    a pivot table from it.
+
+    Parameters:
+        - data: The base DataFrame().
+        - columns: The columns of the new DataFrame().
+        - column_values: The values to put in each column.
+
+    Returns:
+        A DataFrame() object.
+    """
     return data.pivot_table(
         index=data.index, 
         columns=columns,
@@ -183,12 +196,34 @@ def create_pivot_table(data, columns, column_values):
 
 
 def query_df(df, col_name, col_value):
+    """
+    Create a new subset of a given DataFrame() by querying it.
+
+    Parameters:
+        - df: The base DataFrame().
+        - col_name: The name of the column.
+        - col_vale: The values to match in that column.
+
+    Returns:
+        A DataFrame() object.
+    """
     return df.query(f'{col_name} == "{col_value}"')
 
 
 # Functions related to calculations over Dataframes
 
+
 def calc_correlation(data1, data2):
+    """
+    Calculate the correlations between 2 DataFrames().
+
+    Parameters:
+        - data1: The first dataframe.
+        - data2: The second dataframe.
+
+    Returns:
+        A Series() object.
+    """
     return (
         data1.corrwith(data2).
         loc[lambda x: x.notnull()]
@@ -196,10 +231,37 @@ def calc_correlation(data1, data2):
 
 
 def calc_diff(data, column1='open', column2='close'):
+    """
+    Calculate the difference between a column and the previous value
+    of another column of a dataframe.
+
+    Parameters:
+        - data: The base DataFrame().
+        - column1: The first column.
+        - column2: The second column.
+
+    Returns:
+        A Series() object.
+    """
     return data[column1] - data[column2].shift()
 
 
 def calc_moving_average(data, func, named_arg, period):
+    """
+    Function that calculates the moving average of a Series()
+    for a given period.
+
+    Parameters:
+        - data: The base Series()
+        - func: The window calculation function.
+        - named_arg: The name of the argument `periods` is being passed as.
+        - period: The rule/span or list of them to pass to the
+                    resampling/smoothing function, like '20D' 
+                    for 20-day periods.
+
+    Returns:
+        A Series() object.
+    """
     return (
         data
         .pipe(
@@ -210,20 +272,21 @@ def calc_moving_average(data, func, named_arg, period):
     )
 
 
-# Functions related  Dataframe resampling
+# Functions related to Dataframe resampling
 
 
 def resample_df(data, resample, agg_dict):
     """
-    Resample a dataframe and run functions on columns specified in a dict.
+    Resample a DataFrame() and run functions on columns specified in a dict.
 
     Parameters:
-        - df: DataFrame to be resampled.
-        - resample: The period to use for resampling the data, if desired.
+        - df: DataFrame() to be resampled.
+        - resample: The period to use for resampling the data.
         - agg_dict: A dictionary that specifies the operations to be done
                     for each column after resampling.
+    
     Returns:
-        The resampled dataframe
+        The resampled DataFrame()
     """
     return (
         data
@@ -237,6 +300,16 @@ def resample_df(data, resample, agg_dict):
 
 
 def resample_series(data, period):
+    """
+    Resample a Series() by a specified period.
+    
+    Parameters:
+        - df: DataFrame to be resampled.
+        - data: The period to use for resampling the data.
+    
+    Returns:
+        The resampled Series()
+    """
     return (
         data
         .resample(period)
@@ -245,6 +318,16 @@ def resample_series(data, period):
 
 
 def resample_index(index, period='Q'):
+    """
+    Resample an Index() by a specified period.
+
+    Parameters:
+        - index: The Index() to be resampled.
+        - period: The period to use for resampling the data, if desired.
+    
+    Returns:
+        The resampled Index()
+    """
     return pd.date_range(
         start=index.min(),
         end=index.max(),
